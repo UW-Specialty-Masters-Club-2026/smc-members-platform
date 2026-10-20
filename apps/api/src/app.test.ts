@@ -1,8 +1,10 @@
 import { Writable } from 'node:stream';
+import { createLogger } from '@smc/core';
+import type { PrismaClient } from '@smc/db';
+import { MemoryMailer } from '@smc/email';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from './app';
-import { createLogger } from '@smc/core';
 
 function captureLogger() {
   const lines: string[] = [];
@@ -15,20 +17,53 @@ function captureLogger() {
   return { logger: createLogger({ level: 'debug' }, sink), lines };
 }
 
+/** App wired with no database: only routes that never reach Prisma may be exercised. */
+function appWithoutDb() {
+  return createApp({
+    prisma: {} as PrismaClient,
+    logger: captureLogger().logger,
+    mailer: new MemoryMailer(),
+    now: () => new Date(),
+    config: { appEnv: 'test', appBaseUrl: 'http://localhost:3000', authRateLimitPerIp: 100 },
+  });
+}
+
 describe('api app', () => {
-  it('responds to /health', async () => {
-    const { logger } = captureLogger();
-    const res = await request(createApp({ logger })).get('/health');
+  it('responds to /health with a request id', async () => {
+    const res = await request(appWithoutDb()).get('/health');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'ok' });
     expect(res.headers['x-powered-by']).toBeUndefined();
+    expect(res.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('returns JSON 404 for unknown routes', async () => {
-    const { logger } = captureLogger();
-    const res = await request(createApp({ logger })).get('/nope');
+    const res = await request(appWithoutDb()).get('/nope');
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: 'not_found' });
+  });
+
+  it('rejects mutations from a foreign or missing Origin before touching the database', async () => {
+    const app = appWithoutDb();
+    const foreign = await request(app)
+      .post('/auth/magic-link')
+      .set('Origin', 'https://evil.example')
+      .send({ email: 'a@uw.edu' });
+    expect(foreign.status).toBe(403);
+    expect(foreign.body).toEqual({ error: 'bad_origin' });
+
+    const missing = await request(app).post('/auth/magic-link').send({ email: 'a@uw.edu' });
+    expect(missing.status).toBe(403);
+  });
+
+  it('answers malformed JSON with 400', async () => {
+    const res = await request(appWithoutDb())
+      .post('/auth/magic-link')
+      .set('Origin', 'http://localhost:3000')
+      .set('Content-Type', 'application/json')
+      .send('{"email":');
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'invalid_json' });
   });
 });
 

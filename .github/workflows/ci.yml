@@ -11,6 +11,20 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: smc_test
+          MYSQL_USER: smc
+          MYSQL_PASSWORD: smc_ci
+          MYSQL_ROOT_PASSWORD: root_ci
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      TEST_DATABASE_URL: mysql://smc:smc_ci@127.0.0.1:3306/smc_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

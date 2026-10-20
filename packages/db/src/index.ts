@@ -2,6 +2,7 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from './generated/prisma/client';
 
 export * from './generated/prisma/client';
+export * from './audit';
 
 /**
  * Build MySQL pool options from a mysql:// URL. The session timezone is pinned

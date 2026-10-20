@@ -1,2 +1,3 @@
-// Email templates (MJML → HTML + plain text) are added in step 3.
-export {};
+export * from './mailer';
+export * from './escape';
+export * from './templates/magic-link';

@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+/** True when the address (bare or `Name <addr>`) is on uw.edu or any of its subdomains. */
+export function isUwAddress(value: string): boolean {
+  const addr = /<([^>]+)>/.exec(value)?.[1] ?? value;
+  const domain = addr.trim().toLowerCase().split('@')[1] ?? '';
+  return domain === 'uw.edu' || domain.endsWith('.uw.edu');
+}
+
 export const appEnvSchema = z.enum(['development', 'test', 'staging', 'production']);
 export type AppEnv = z.infer<typeof appEnvSchema>;
 
@@ -12,6 +19,15 @@ export const baseEnvSchema = z.object({
   DATABASE_URL: z
     .string()
     .regex(/^mysql:\/\//, 'DATABASE_URL must be a mysql:// connection string'),
+
+  /** `dev-outbox` writes emails to a local folder; `mailgun` arrives in step 4. */
+  MAIL_TRANSPORT: z.enum(['dev-outbox', 'mailgun']).default('dev-outbox'),
+  DEV_OUTBOX_DIR: z.string().default('.dev-outbox'),
+  /** Sender on the club's own (sub)domain, e.g. `Specialty Masters Club <news@mail.example.org>`. */
+  MAIL_FROM: z.string().refine((v) => !isUwAddress(v), {
+    message: 'must not be a uw.edu address (we cannot set SPF/DKIM for UW domains)',
+  }),
+  MAIL_REPLY_TO: z.email().default('smcommittee@uw.edu'),
 });
 
 export const apiEnvSchema = baseEnvSchema.extend({
@@ -41,13 +57,20 @@ export function parseEnv<S extends z.ZodType>(
       result.error.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`),
     );
   }
-  const env = result.data as z.infer<S> & { APP_ENV?: AppEnv; APP_BASE_URL?: string };
-  if (
-    env.APP_ENV === 'production' &&
-    env.APP_BASE_URL &&
-    !env.APP_BASE_URL.startsWith('https://')
-  ) {
-    throw new EnvError(['APP_BASE_URL: must use https in production']);
+  const env = result.data as z.infer<S> & {
+    APP_ENV?: AppEnv;
+    APP_BASE_URL?: string;
+    MAIL_TRANSPORT?: string;
+  };
+  const problems: string[] = [];
+  if (env.APP_ENV === 'production' || env.APP_ENV === 'staging') {
+    if (env.APP_BASE_URL && !env.APP_BASE_URL.startsWith('https://')) {
+      problems.push(`APP_BASE_URL: must use https in ${env.APP_ENV}`);
+    }
+    if (env.MAIL_TRANSPORT === 'dev-outbox') {
+      problems.push(`MAIL_TRANSPORT: dev-outbox is not allowed in ${env.APP_ENV}`);
+    }
   }
+  if (problems.length) throw new EnvError(problems);
   return env;
 }

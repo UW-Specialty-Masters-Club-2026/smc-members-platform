@@ -8,13 +8,14 @@
   },
   "scripts": {
     "generate": "prisma generate",
-    "migrate:dev": "prisma migrate dev",
+    "migrate:dev": "prisma migrate dev && prisma generate",
     "migrate:deploy": "prisma migrate deploy",
     "typecheck": "prisma generate && tsc -p tsconfig.json"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.10.1",
-    "@prisma/client": "^7.10.1"
+    "@prisma/client": "^7.10.1",
+    "@smc/core": "^0.0.0"
   },
   "devDependencies": {
     "prisma": "^7.10.1"

@@ -7,6 +7,9 @@ export default defineConfig({
   target: 'node22',
   sourcemap: true,
   clean: true,
-  // Internal workspace packages ship TypeScript source, so bundle them in.
+  // Bundle only internal workspace packages (they ship TypeScript source). Every
+  // third-party package stays external: several are CommonJS and the Prisma client
+  // loads files at runtime, neither of which survives being inlined into ESM.
   noExternal: [/^@smc\//],
+  external: [/^(?!@smc\/)(@[^/]+\/)?[^./][^/]*/],
 });

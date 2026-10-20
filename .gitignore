@@ -31,3 +31,6 @@ test-results/
 # generated
 packages/db/src/generated/
 next-env.d.ts
+
+# local dev email outbox (contains sign-in links)
+.dev-outbox/

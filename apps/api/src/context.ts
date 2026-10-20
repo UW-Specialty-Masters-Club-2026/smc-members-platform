@@ -1,0 +1,25 @@
+import type { AppEnv } from '@smc/config';
+import type { PrismaClient } from '@smc/db';
+import type { Mailer } from '@smc/email';
+import type { Logger } from 'pino';
+
+export interface AppConfig {
+  appEnv: AppEnv;
+  /** Public web origin; magic links point here and mutating requests must come from it. */
+  appBaseUrl: string;
+  /** Max auth emails requested per IP per 15 minutes. */
+  authRateLimitPerIp: number;
+}
+
+/** Everything a request handler needs, injected so tests can swap the clock and mailer. */
+export interface AppContext {
+  prisma: PrismaClient;
+  logger: Logger;
+  mailer: Mailer;
+  now: () => Date;
+  config: AppConfig;
+}
+
+export function secureCookies(config: AppConfig): boolean {
+  return config.appEnv === 'production' || config.appEnv === 'staging';
+}

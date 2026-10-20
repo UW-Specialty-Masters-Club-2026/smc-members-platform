@@ -1,4 +1,4 @@
-// SMC platform schema (MySQL 8+). Models are added in step 0b onward.
+// SMC platform schema (MySQL 8+).
 // All DateTime columns hold UTC; Pacific Time is applied only when formatting.
 
 generator client {
@@ -8,4 +8,123 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+// ─── Members & access ──────────────────────────────────────────────
+
+enum MemberRole {
+  MEMBER
+  ORGANIZER
+  ADMIN
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// Why news emails are switched off without the member asking in the profile.
+enum EmailSuppressionReason {
+  UNSUBSCRIBED
+  COMPLAINED
+  HARD_BOUNCE
+}
+
+model Member {
+  id        String       @id @default(cuid())
+  /// Stored lower-cased and trimmed.
+  email     String       @unique @db.VarChar(320)
+  firstName String       @map("first_name") @db.VarChar(100)
+  lastName  String       @map("last_name") @db.VarChar(100)
+  role      MemberRole   @default(MEMBER)
+  status    MemberStatus @default(ACTIVE)
+
+  emailVerifiedAt DateTime? @map("email_verified_at")
+
+  /// "Send me extra news and invitations" — chosen at sign-up, editable in My profile.
+  newsOptIn             Boolean                 @default(false) @map("news_opt_in")
+  newsOptInUpdatedAt    DateTime?               @map("news_opt_in_updated_at")
+  emailSuppressedReason EmailSuppressionReason? @map("email_suppressed_reason")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sessions   Session[]
+  magicLinks MagicLinkToken[]
+
+  @@index([status, newsOptIn, emailVerifiedAt])
+  @@map("members")
+}
+
+enum MagicLinkPurpose {
+  /// Sign-up confirmation: verifies the email and signs in.
+  SIGNUP
+  LOGIN
+}
+
+model MagicLinkToken {
+  id        String           @id @default(cuid())
+  memberId  String           @map("member_id")
+  member    Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// SHA-256 of the raw token; the raw token only ever lives in the email.
+  tokenHash String           @unique @map("token_hash") @db.Char(64)
+  purpose   MagicLinkPurpose
+  expiresAt DateTime         @map("expires_at")
+  usedAt    DateTime?        @map("used_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([memberId, createdAt])
+  @@map("magic_link_tokens")
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  memberId   String    @map("member_id")
+  member     Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// SHA-256 of the cookie value.
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([memberId])
+  @@map("sessions")
+}
+
+// ─── Run + audit logs ──────────────────────────────────────────────
+
+enum AuditActorType {
+  SYSTEM
+  MEMBER
+  ADMIN
+  WEBHOOK
+}
+
+enum AuditResult {
+  SUCCESS
+  FAILURE
+  SKIPPED
+  DENIED
+}
+
+/// Append-only record of every action, approval, failure, delivery and retry.
+model AuditLog {
+  id         BigInt         @id @default(autoincrement())
+  /// Correlates all entries of one request, job run or webhook delivery.
+  runId      String         @map("run_id") @db.VarChar(64)
+  actorType  AuditActorType @map("actor_type")
+  actorId    String?        @map("actor_id") @db.VarChar(64)
+  action     String         @db.VarChar(100)
+  entityType String?        @map("entity_type") @db.VarChar(50)
+  entityId   String?        @map("entity_id") @db.VarChar(64)
+  result     AuditResult
+  /// Emails are masked before storage.
+  metadata   Json?
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  @@index([runId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

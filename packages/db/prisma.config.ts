@@ -6,5 +6,6 @@ export default defineConfig({
   datasource: {
     // Only migrate/introspect commands need a live database; generate does not.
     url: process.env.DATABASE_URL ?? 'mysql://placeholder@localhost:3306/placeholder',
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
 });
