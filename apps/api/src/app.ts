@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
+import { adminAuditRouter } from './admin/audit';
 import { adminDigestsRouter } from './admin/digests';
 import { adminEventsRouter } from './admin/events';
 import { adminMembersRouter } from './admin/members';
@@ -50,6 +51,7 @@ export function createApp(ctx: AppContext): Express {
   browser.use('/admin/events', adminEventsRouter(ctx));
   browser.use('/admin/news', adminNewsRouter(ctx));
   browser.use('/admin/digests', adminDigestsRouter(ctx));
+  browser.use('/admin/audit', adminAuditRouter(ctx));
   browser.use('/digest', publicDigestRouter(ctx));
   browser.use('/email/unsubscribe', unsubscribePageRouter(ctx));
   browser.use('/staff/checkin', staffCheckInRouter(ctx));

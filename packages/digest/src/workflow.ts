@@ -1,3 +1,4 @@
+import { maskEmailsInText } from '@smc/core';
 import { Prisma, recordAudit, type PrismaClient, type WeeklyDigest } from '@smc/db';
 import {
   renderAdminNotice,
@@ -47,33 +48,21 @@ export function adminDigestUrl(appBaseUrl: string, digestId: string): string {
 }
 
 /** Email every active admin. A failed notice is audited but never blocks the workflow. */
-export async function notifyAdmins(
-  deps: WorkflowDeps,
+async function sendAdminNotice(
+  deps: Pick<WorkflowDeps, 'db' | 'mailer' | 'runId'>,
   kind: AdminNoticeKind,
-  digest: Pick<WeeklyDigest, 'id' | 'weekKey'>,
-  details: string[],
+  notice: { subject: string; html: string; text: string },
+  entity: { type: string; id: string },
 ): Promise<void> {
   const admins = await deps.db.member.findMany({
     where: { role: 'ADMIN', status: 'ACTIVE', emailVerifiedAt: { not: null } },
     select: { id: true, email: true },
   });
-  const notice = renderAdminNotice({
-    kind,
-    dateLabel: digestSchedule(digest.weekKey).draftAt.toLocaleDateString('en-US', {
-      timeZone: 'America/Los_Angeles',
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    }),
-    adminUrl: adminDigestUrl(deps.appBaseUrl, digest.id),
-    details,
-  });
   let sent = 0;
   const failed: string[] = [];
   for (const admin of admins) {
     try {
-      await deps.mailer.send({ to: admin.email, tag: 'digest-admin', ...notice });
+      await deps.mailer.send({ to: admin.email, tag: 'smc-admin', ...notice });
       sent += 1;
     } catch {
       failed.push(admin.id);
@@ -82,12 +71,54 @@ export async function notifyAdmins(
   await recordAudit(deps.db, {
     runId: deps.runId,
     actorType: 'SYSTEM',
-    action: 'digest.admin_notified',
-    entityType: 'weekly_digest',
-    entityId: digest.id,
+    action: 'admin.notified',
+    entityType: entity.type,
+    entityId: entity.id,
     result: failed.length ? 'FAILURE' : 'SUCCESS',
     metadata: { kind, sent, failedAdminIds: failed },
   });
+}
+
+const PT_LONG: Intl.DateTimeFormatOptions = {
+  timeZone: 'America/Los_Angeles',
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+};
+
+export async function notifyAdmins(
+  deps: WorkflowDeps,
+  kind: AdminNoticeKind,
+  digest: Pick<WeeklyDigest, 'id' | 'weekKey'>,
+  details: string[],
+): Promise<void> {
+  const notice = renderAdminNotice({
+    kind,
+    dateLabel: digestSchedule(digest.weekKey).draftAt.toLocaleDateString('en-US', PT_LONG),
+    adminUrl: adminDigestUrl(deps.appBaseUrl, digest.id),
+    details,
+  });
+  await sendAdminNotice(deps, kind, notice, { type: 'weekly_digest', id: digest.id });
+}
+
+/** Alert admins that a job gave up (worker `onDead` hook). */
+export async function notifyAdminsJobDead(
+  deps: Pick<WorkflowDeps, 'db' | 'mailer' | 'runId' | 'appBaseUrl' | 'now'>,
+  job: { id: bigint; name: string; jobKey: string; attempts: number },
+  error: string,
+): Promise<void> {
+  const notice = renderAdminNotice({
+    kind: 'job_failed',
+    dateLabel: deps.now().toLocaleDateString('en-US', PT_LONG),
+    adminUrl: `${deps.appBaseUrl}/admin/audit?entityType=job&entityId=${job.id}`,
+    details: [
+      `Job: ${job.name} (${job.jobKey})`,
+      `Attempts: ${job.attempts}`,
+      `Last error: ${maskEmailsInText(error).slice(0, 500)}`,
+    ],
+  });
+  await sendAdminNotice(deps, 'job_failed', notice, { type: 'job', id: String(job.id) });
 }
 
 // ─── Draft ─────────────────────────────────────────────────────────

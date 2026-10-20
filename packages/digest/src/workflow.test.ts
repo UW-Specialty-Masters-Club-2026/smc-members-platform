@@ -10,6 +10,7 @@ import {
   approveDigest,
   createDraft,
   digestJobHandlers,
+  notifyAdminsJobDead,
   rejectDigest,
   tick,
   type WorkflowDeps,
@@ -350,6 +351,21 @@ describe.skipIf(!url)('weekly digest workflow (fake clock)', () => {
     await workerCycle();
     expect(transport.sent).toHaveLength(2);
     expect((await digestFor('2026-10-26'))!.status).toBe('SENT');
+  });
+
+  it('alerts admins about a dead job without leaking addresses', async () => {
+    await notifyAdminsJobDead(
+      makeDeps('job-9-dead'),
+      { id: 9n, name: 'digest.send-batch', jobKey: 'digest.send-batch:b1:5', attempts: 5 },
+      'Mailgun said: mia@uw.edu rejected',
+    );
+    expect(mailer.sent).toHaveLength(1);
+    expect(mailer.sent[0]!.subject).toMatch(/^Background job failed/);
+    expect(mailer.sent[0]!.text).toContain('m***@uw.edu rejected');
+    expect(mailer.sent[0]!.text).not.toContain('mia@uw.edu');
+    expect(mailer.sent[0]!.text).toContain('/admin/audit?entityType=job&entityId=9');
+    const audit = await db.auditLog.findFirstOrThrow({ where: { action: 'admin.notified' } });
+    expect(audit).toMatchObject({ entityType: 'job', entityId: '9', runId: 'job-9-dead' });
   });
 
   it('marks the issue PARTIALLY_FAILED on a permanent failure and alerts admins', async () => {

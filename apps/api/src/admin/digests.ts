@@ -19,6 +19,7 @@ import { z } from 'zod';
 import type { AppContext } from '../context';
 import { HttpError } from '../errors';
 import { requireRole } from '../middleware/access';
+import { auditView } from './audit';
 
 /** Preview pages are inert documents: no scripts, only fonts/styles/images the email uses. */
 const PREVIEW_CSP = [
@@ -192,7 +193,26 @@ export function adminDigestsRouter(ctx: AppContext): Router {
     ]);
     const weekKey = weekKeyFor(now);
     const s = digestSchedule(weekKey);
+    const day = 24 * 60 * 60_000;
+    const [deadJobs, rejectedWebhooks, unknownBatches, retryingBatches, failedDeliveries] =
+      await Promise.all([
+        ctx.prisma.job.count({
+          where: { status: 'DEAD', updatedAt: { gt: new Date(now.getTime() - 7 * day) } },
+        }),
+        ctx.prisma.auditLog.count({
+          where: {
+            action: 'mailgun.webhook.rejected',
+            createdAt: { gt: new Date(now.getTime() - day) },
+          },
+        }),
+        ctx.prisma.digestBatch.count({ where: { status: 'UNKNOWN' } }),
+        ctx.prisma.digestBatch.count({ where: { status: 'RETRY_SCHEDULED' } }),
+        ctx.prisma.digestDelivery.count({
+          where: { status: 'FAILED', updatedAt: { gt: new Date(now.getTime() - 7 * day) } },
+        }),
+      ]);
     res.json({
+      health: { deadJobs, rejectedWebhooks, unknownBatches, retryingBatches, failedDeliveries },
       digests: digests.map(summaryView),
       settings: { ...settings, pausedNow: isPaused(settings, now) },
       thisWeek: {
@@ -390,6 +410,22 @@ export function adminDigestsRouter(ctx: AppContext): Router {
     );
     if (outcome !== 'rejected') throw new HttpError(409, 'not_pending');
     res.json({ status: 'rejected' });
+  });
+
+  /** Everything that happened to this issue (draft, approval, batches, notices), oldest first. */
+  router.get('/:id/activity', async (req, res) => {
+    const id = String(req.params.id);
+    const rows = await ctx.prisma.auditLog.findMany({
+      where: {
+        OR: [
+          { entityType: 'weekly_digest', entityId: id },
+          { metadata: { path: '$.digestId', equals: id } },
+        ],
+      },
+      orderBy: { id: 'asc' },
+      take: 500,
+    });
+    res.json({ entries: await auditView(ctx, rows) });
   });
 
   /** Per-recipient delivery status, for chasing failures. */

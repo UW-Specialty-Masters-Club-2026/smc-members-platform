@@ -18,7 +18,16 @@ interface Settings {
   pausedNow: boolean;
 }
 
+interface Health {
+  deadJobs: number;
+  rejectedWebhooks: number;
+  unknownBatches: number;
+  retryingBatches: number;
+  failedDeliveries: number;
+}
+
 interface ListView {
+  health: Health;
   digests: DigestSummaryView[];
   settings: Settings;
   thisWeek: DigestScheduleView & { weekKey: string; exists: boolean; canDraftNow: boolean };
@@ -114,6 +123,34 @@ export default function AdminDigestsPage() {
           {message}
         </p>
       )}
+
+      <section className="card" aria-labelledby="health" style={{ marginBottom: 16 }}>
+        <h2 id="health" style={{ marginTop: 0, fontSize: 18 }}>
+          System health
+        </h2>
+        <ul className="health">
+          {(
+            [
+              ['Dead jobs (7 days)', data.health.deadJobs, '/admin/audit?action=job.dead'],
+              [
+                'Rejected webhooks (24 h)',
+                data.health.rejectedWebhooks,
+                '/admin/audit?action=mailgun.webhook.rejected',
+              ],
+              ['Batches awaiting reconciliation', data.health.unknownBatches, null],
+              ['Batches retrying', data.health.retryingBatches, null],
+              ['Failed deliveries (7 days)', data.health.failedDeliveries, null],
+            ] as const
+          ).map(([label, n, href]) => (
+            <li
+              key={label}
+              className={n > 0 && label !== 'Batches retrying' ? 'health--alert' : undefined}
+            >
+              <strong>{n}</strong> {href && n > 0 ? <Link href={href}>{label}</Link> : label}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="split" style={{ marginBottom: 24 }}>
         <section className="card" aria-labelledby="this-week">

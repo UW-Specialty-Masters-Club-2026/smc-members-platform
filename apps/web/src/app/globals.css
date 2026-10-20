@@ -570,3 +570,44 @@ table.data select {
   text-transform: uppercase;
   color: var(--smc-body);
 }
+
+/* ─── Audit ─────────────────────────────────────────────── */
+.audit-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0 16px;
+  margin-bottom: 16px;
+}
+code.meta {
+  font-size: 12px;
+  word-break: break-word;
+  color: var(--smc-body);
+}
+.result {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.result--failure,
+.result--denied {
+  color: #7a1d14;
+}
+.result--success {
+  color: #1e6b3a;
+}
+.health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+.health li strong {
+  font-size: 18px;
+}
+.health--alert strong {
+  color: #7a1d14;
+}

@@ -2,7 +2,13 @@ import { hostname } from 'node:os';
 import { parseEnv, workerEnvSchema } from '@smc/config';
 import { CLUB_TIMEZONE, createLogger } from '@smc/core';
 import { createPrismaClient } from '@smc/db';
-import { digestJobHandlers, startDigestCrons, tick, type WorkflowDeps } from '@smc/digest';
+import {
+  digestJobHandlers,
+  notifyAdminsJobDead,
+  startDigestCrons,
+  tick,
+  type WorkflowDeps,
+} from '@smc/digest';
 import { createBatchTransport, createMailer, recipientGuard } from '@smc/email';
 import { runDueJobs } from '@smc/jobs';
 
@@ -54,6 +60,14 @@ async function drainJobs() {
       workerId,
       now: () => new Date(),
       onError: (job, err) => logger.warn({ err, job: job.name, key: job.jobKey }, 'job failed'),
+      onDead: async (job, err) => {
+        logger.error({ err, job: job.name, key: job.jobKey }, 'job is dead');
+        await notifyAdminsJobDead(
+          makeDeps(`job-${job.id}-dead`),
+          job,
+          err instanceof Error ? err.message : String(err),
+        );
+      },
     });
     if (result.succeeded + result.retried + result.dead > 0) logger.info(result, 'jobs processed');
   } catch (err) {

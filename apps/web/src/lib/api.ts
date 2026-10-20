@@ -227,3 +227,27 @@ export const DIGEST_STATUS_LABEL: Record<DigestStatus, string> = {
   EXPIRED: 'Expired',
   SKIPPED: 'Skipped',
 };
+
+export interface AuditEntry {
+  id: string;
+  runId: string;
+  at: string;
+  actorType: 'SYSTEM' | 'MEMBER' | 'ADMIN' | 'WEBHOOK';
+  actor: { id: string; name: string | null } | null;
+  action: string;
+  entityType: string | null;
+  entityId: string | null;
+  result: 'SUCCESS' | 'FAILURE' | 'SKIPPED' | 'DENIED';
+  metadata: unknown;
+}
+
+export function ptDateTime(iso: string): string {
+  return `${new Date(iso).toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+  })} PT`;
+}

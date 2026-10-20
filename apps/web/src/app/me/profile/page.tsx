@@ -110,9 +110,14 @@ export default function ProfilePage() {
             </Link>
           )}
           {profile.role === 'ADMIN' && (
-            <Link className="btn btn--outline" href="/admin/members">
-              Manage members
-            </Link>
+            <>
+              <Link className="btn btn--outline" href="/admin/members">
+                Manage members
+              </Link>
+              <Link className="btn btn--outline" href="/admin/audit">
+                Audit log
+              </Link>
+            </>
           )}
           <button className="btn btn--outline" type="button" onClick={signOut}>
             Sign out

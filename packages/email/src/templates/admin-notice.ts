@@ -1,7 +1,7 @@
 import { escapeHtml } from '../escape';
 
 export type AdminNoticeKind =
-  'approval_needed' | 'skipped' | 'expired' | 'sent' | 'partially_failed';
+  'approval_needed' | 'skipped' | 'expired' | 'sent' | 'partially_failed' | 'job_failed';
 
 export interface AdminNoticeInput {
   kind: AdminNoticeKind;
@@ -34,6 +34,11 @@ const COPY: Record<AdminNoticeKind, { subject: string; lead: string; cta: string
     lead: 'This week’s digest was handed to Mailgun for every recipient.',
     cta: 'VIEW RESULTS',
   },
+  job_failed: {
+    subject: 'Background job failed',
+    lead: 'A background job stopped retrying. Anything it was doing (for example sending a digest batch) has not completed. Check the audit log, fix the cause, then re-run it.',
+    cta: 'OPEN AUDIT LOG',
+  },
   partially_failed: {
     subject: 'Weekly digest sent with failures',
     lead: 'This week’s digest went out, but some recipients could not be sent to. Review the failures in the admin workspace.',
@@ -46,10 +51,11 @@ export function renderAdminNotice(input: AdminNoticeInput) {
   const c = COPY[input.kind];
   const subject = `${c.subject} · ${input.dateLabel}`;
   const details = input.details.map((d) => `<li>${escapeHtml(d)}</li>`).join('');
+  const label = input.kind === 'job_failed' ? 'SMC ADMIN · SYSTEM' : 'SMC ADMIN · WEEKLY DIGEST';
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
 <body style="margin:0;padding:24px 16px;background:#EFE7FA;font-family:Montserrat,'Helvetica Neue',Arial,sans-serif;color:#2D0A68;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#FFFFFF;">
-<tr><td style="background:#2D0A68;padding:18px 24px;color:#F3D35C;font-size:12px;font-weight:800;letter-spacing:2px;">SMC ADMIN · WEEKLY DIGEST</td></tr>
+<tr><td style="background:#2D0A68;padding:18px 24px;color:#F3D35C;font-size:12px;font-weight:800;letter-spacing:2px;">${label}</td></tr>
 <tr><td style="padding:24px;">
 <h1 style="margin:0 0 8px;font-size:20px;">${escapeHtml(c.subject)}</h1>
 <p style="margin:0 0 12px;font-size:14px;color:#3E2C66;">${escapeHtml(input.dateLabel)}</p>

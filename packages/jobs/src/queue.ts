@@ -138,6 +138,8 @@ export async function runDueJobs(
     now: () => Date;
     limit?: number;
     onError?: (job: Job, err: unknown) => void;
+    /** Called once when a job gives up for good (e.g. to alert admins). Errors are swallowed. */
+    onDead?: (job: Job, err: unknown) => Promise<void>;
   },
 ): Promise<RunResult> {
   const result: RunResult = { succeeded: 0, retried: 0, dead: 0 };
@@ -152,7 +154,9 @@ export async function runDueJobs(
       result.succeeded += 1;
     } catch (err) {
       opts.onError?.(job, err);
-      result[(await failJob(db, job, err, opts.now())) === 'dead' ? 'dead' : 'retried'] += 1;
+      const outcome = await failJob(db, job, err, opts.now());
+      result[outcome === 'dead' ? 'dead' : 'retried'] += 1;
+      if (outcome === 'dead') await opts.onDead?.(job, err).catch(() => undefined);
     }
   }
   return result;

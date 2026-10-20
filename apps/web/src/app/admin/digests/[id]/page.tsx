@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { api, DIGEST_STATUS_LABEL, type DigestDetailView } from '@/lib/api';
+import { AuditTable } from '@/components/AuditTable';
+import { api, DIGEST_STATUS_LABEL, type AuditEntry, type DigestDetailView } from '@/lib/api';
 
 interface DeliveryRow {
   id: string;
@@ -31,11 +32,14 @@ export default function AdminDigestPage() {
   const [reason, setReason] = useState('');
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [failures, setFailures] = useState<DeliveryRow[]>([]);
+  const [activity, setActivity] = useState<AuditEntry[]>([]);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     const res = await api<DigestDetailView>(`/admin/digests/${id}`);
     setD(res.data);
+    const act = await api<{ entries: AuditEntry[] }>(`/admin/digests/${id}/activity`);
+    setActivity(act.data?.entries ?? []);
     if (res.data && ['SENDING', 'SENT', 'PARTIALLY_FAILED'].includes(res.data.status)) {
       const f = await api<{ deliveries: DeliveryRow[] }>(
         `/admin/digests/${id}/deliveries?status=FAILED`,
@@ -424,6 +428,11 @@ export default function AdminDigestPage() {
           )}
         </section>
       )}
+
+      <section aria-labelledby="activity" style={{ marginTop: 32 }}>
+        <h2 id="activity">Activity</h2>
+        <AuditTable entries={activity} />
+      </section>
     </main>
   );
 }

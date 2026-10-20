@@ -82,6 +82,21 @@ describe.skipIf(!url)('MySQL job queue', () => {
     expect((await db.job.findFirstOrThrow()).status).toBe('SUCCEEDED');
   });
 
+  it('calls onDead exactly once when a job gives up', async () => {
+    await enqueue(db, { name: 'boom', key: 'boom', runAt: T0, maxAttempts: 2 });
+    const dead: string[] = [];
+    const handlers = { boom: async () => Promise.reject(new Error('nope')) };
+    const opts = {
+      workerId: 'w',
+      onDead: async (j: { jobKey: string }) => void dead.push(j.jobKey),
+    };
+    await runDueJobs(db, handlers, { ...opts, now: () => T0 });
+    expect(dead).toEqual([]);
+    await runDueJobs(db, handlers, { ...opts, now: () => new Date(T0.getTime() + 60_000) });
+    await runDueJobs(db, handlers, { ...opts, now: () => new Date(T0.getTime() + 120_000) });
+    expect(dead).toEqual(['boom']);
+  });
+
   it('fails unknown job names loudly', async () => {
     await enqueue(db, { name: 'nope', key: 'nope', runAt: T0, maxAttempts: 1 });
     expect((await runDueJobs(db, {}, { workerId: 'w', now: () => T0 })).dead).toBe(1);
