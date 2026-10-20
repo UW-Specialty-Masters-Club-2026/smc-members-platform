@@ -1,0 +1,11 @@
+// SMC platform schema (MySQL 8+). Models are added in step 0b onward.
+// All DateTime columns hold UTC; Pacific Time is applied only when formatting.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}

@@ -27,3 +27,7 @@ test-results/
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# generated
+packages/db/src/generated/
+next-env.d.ts

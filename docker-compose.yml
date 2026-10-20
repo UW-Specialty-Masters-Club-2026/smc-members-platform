@@ -1,0 +1,24 @@
+# Local development database. Credentials here are for local use only.
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: smc
+      MYSQL_USER: smc
+      MYSQL_PASSWORD: smc_local
+      MYSQL_ROOT_PASSWORD: smc_root_local
+      TZ: UTC
+    command:
+      [
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_0900_ai_ci',
+        '--default-time-zone=+00:00',
+      ]
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

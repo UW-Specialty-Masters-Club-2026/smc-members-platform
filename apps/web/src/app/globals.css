@@ -1,0 +1,25 @@
+/* SMC brand tokens (from the approved digest design). */
+:root {
+  --smc-ink: #2d0a68;
+  --smc-accent: #7e41e6;
+  --smc-gold: #f3d35c;
+  --smc-lavender: #f8e6fe;
+  --smc-page: #efe7fa;
+  --smc-body: #3e2c66;
+  --smc-soft: #b48cf0;
+  --font-body: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--smc-page);
+  color: var(--smc-ink);
+  font-family: var(--font-body);
+}

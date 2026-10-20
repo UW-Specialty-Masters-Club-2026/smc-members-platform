@@ -1,0 +1,22 @@
+{
+  "name": "@smc/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@smc/config": "^0.0.0",
+    "@smc/core": "^0.0.0",
+    "@smc/db": "^0.0.0",
+    "croner": "^10.0.1",
+    "pino": "^10.4.0"
+  },
+  "devDependencies": {
+    "tsup": "^9.0.0"
+  }
+}
