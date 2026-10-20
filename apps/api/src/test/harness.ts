@@ -13,6 +13,14 @@ export const TEST_LINK_SECRET = 'test-link-signing-secret-0123456789abcdef';
 
 /** Child tables first. */
 const TABLES = [
+  'jobs',
+  'mailgun_webhook_events',
+  'digest_deliveries',
+  'digest_batches',
+  'weekly_digests',
+  'digest_settings',
+  'news_openings',
+  'news_posts',
   'audit_logs',
   'survey_answers',
   'survey_responses',

@@ -49,13 +49,17 @@ model Member {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  sessions        Session[]
-  magicLinks      MagicLinkToken[]
-  registrations   Registration[]
-  eventsCreated   Event[]          @relation("EventCreatedBy")
-  attendance      Attendance[]     @relation("AttendanceMember")
-  checkInsDone    Attendance[]     @relation("AttendanceStaff")
-  surveyResponses SurveyResponse[]
+  sessions         Session[]
+  magicLinks       MagicLinkToken[]
+  registrations    Registration[]
+  eventsCreated    Event[]          @relation("EventCreatedBy")
+  attendance       Attendance[]     @relation("AttendanceMember")
+  checkInsDone     Attendance[]     @relation("AttendanceStaff")
+  surveyResponses  SurveyResponse[]
+  newsPosts        NewsPost[]       @relation("NewsAuthor")
+  digestsApproved  WeeklyDigest[]   @relation("DigestApprovedBy")
+  digestsRejected  WeeklyDigest[]   @relation("DigestRejectedBy")
+  digestDeliveries DigestDelivery[]
 
   @@index([status, newsOptIn, emailVerifiedAt])
   @@map("members")
@@ -287,6 +291,269 @@ model SurveyAnswer {
 
   @@unique([responseId, questionId])
   @@map("survey_answers")
+}
+
+// ─── Club news ─────────────────────────────────────────────────────
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model NewsPost {
+  id      String     @id @default(cuid())
+  slug    String     @unique @db.VarChar(120)
+  /// Optional label shown above the title, e.g. "NOW RECRUITING".
+  tag     String?    @db.VarChar(40)
+  title   String     @db.VarChar(160)
+  /// Short description used in listings and the weekly digest.
+  summary String     @db.VarChar(600)
+  body    String?    @db.Text
+  /// "Read more" target when the story lives elsewhere; otherwise the club's news page.
+  linkUrl String?    @map("link_url") @db.VarChar(500)
+  status  NewsStatus @default(DRAFT)
+
+  /// Recruiting posts: who to email and what to include (rendered as the "How to apply" box).
+  applyEmail     String? @map("apply_email") @db.VarChar(320)
+  /// string[]
+  applyChecklist Json?   @map("apply_checklist")
+
+  publishedAt DateTime? @map("published_at")
+  createdById String    @map("created_by_id")
+  createdBy   Member    @relation("NewsAuthor", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  openings NewsOpening[]
+
+  @@index([status, publishedAt])
+  @@map("news_posts")
+}
+
+/// One open role in a recruiting post (rendered as the numbered list in the digest).
+model NewsOpening {
+  id         String   @id @default(cuid())
+  newsPostId String   @map("news_post_id")
+  newsPost   NewsPost @relation(fields: [newsPostId], references: [id], onDelete: Cascade)
+  position   Int
+  title      String   @db.VarChar(120)
+  openings   Int      @default(1)
+
+  @@unique([newsPostId, position])
+  @@map("news_openings")
+}
+
+// ─── Weekly digest ─────────────────────────────────────────────────
+
+/// Single row (id = 1): lets admins pause the digest outside the academic term.
+model DigestSettings {
+  id           Int       @id @default(1)
+  paused       Boolean   @default(false)
+  /// Resume automatically from this instant (null = until unpaused by hand).
+  pausedUntil  DateTime? @map("paused_until")
+  pausedReason String?   @map("paused_reason") @db.VarChar(300)
+  updatedById  String?   @map("updated_by_id") @db.VarChar(64)
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("digest_settings")
+}
+
+enum DigestStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENDING
+  SENT
+  PARTIALLY_FAILED
+  REJECTED
+  EXPIRED
+  SKIPPED
+}
+
+enum DigestSummarySource {
+  TEMPLATE
+  AI
+}
+
+model WeeklyDigest {
+  id          String       @id @default(cuid())
+  /// The Monday this issue belongs to, as a Pacific calendar date ("2026-10-26").
+  weekKey     String       @unique @map("week_key") @db.VarChar(10)
+  /// Assigned on approval, so expired/skipped weeks don't use up a number.
+  issueNumber Int?         @unique @map("issue_number")
+  status      DigestStatus @default(DRAFT)
+
+  /// News published in [windowStart, windowEnd) is included.
+  windowStart DateTime @map("window_start")
+  windowEnd   DateTime @map("window_end")
+
+  /// Exactly what the admin previewed and approved: facts copied from the database.
+  contentSnapshot Json?                @map("content_snapshot")
+  summaryText     String?              @map("summary_text") @db.VarChar(300)
+  summarySource   DigestSummarySource? @map("summary_source")
+  subject         String?              @db.VarChar(200)
+  html            String?              @db.MediumText
+  text            String?              @db.MediumText
+
+  recipientCountPreview Int? @map("recipient_count_preview")
+
+  /// Never send before this (Monday 09:00 PT); unapproved digests expire at expiresAt (18:00 PT).
+  sendNotBefore DateTime @map("send_not_before")
+  expiresAt     DateTime @map("expires_at")
+
+  approvedById String?   @map("approved_by_id")
+  approvedBy   Member?   @relation("DigestApprovedBy", fields: [approvedById], references: [id])
+  approvedAt   DateTime? @map("approved_at")
+  rejectedById String?   @map("rejected_by_id")
+  rejectedBy   Member?   @relation("DigestRejectedBy", fields: [rejectedById], references: [id])
+  rejectedAt   DateTime? @map("rejected_at")
+  rejectReason String?   @map("reject_reason") @db.VarChar(500)
+  skipReason   String?   @map("skip_reason") @db.VarChar(300)
+
+  sendingStartedAt DateTime? @map("sending_started_at")
+  completedAt      DateTime? @map("completed_at")
+
+  /// Optimistic lock: every state change bumps it.
+  version   Int      @default(0)
+  /// Run that created the draft (correlates with audit_logs.run_id).
+  runId     String   @map("run_id") @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  batches    DigestBatch[]
+  deliveries DigestDelivery[]
+
+  @@index([status])
+  @@map("weekly_digests")
+}
+
+enum DigestBatchStatus {
+  PENDING
+  SENDING
+  SUBMITTED
+  RETRY_SCHEDULED
+  /// Request outcome unknown (e.g. timeout): must be reconciled before any retry.
+  UNKNOWN
+  FAILED
+}
+
+/// One Mailgun batch request (≤ 1000 recipients).
+model DigestBatch {
+  id               String            @id @default(cuid())
+  digestId         String            @map("digest_id")
+  digest           WeeklyDigest      @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  batchNo          Int               @map("batch_no")
+  status           DigestBatchStatus @default(PENDING)
+  recipientCount   Int               @map("recipient_count")
+  attempts         Int               @default(0)
+  nextAttemptAt    DateTime?         @map("next_attempt_at")
+  mailgunMessageId String?           @map("mailgun_message_id") @db.VarChar(255)
+  lastError        String?           @map("last_error") @db.VarChar(1000)
+  submittedAt      DateTime?         @map("submitted_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  deliveries DigestDelivery[]
+
+  @@unique([digestId, batchNo])
+  @@index([status, nextAttemptAt])
+  @@map("digest_batches")
+}
+
+enum DeliveryStatus {
+  QUEUED
+  SUBMITTED
+  DELIVERED
+  TEMP_FAILED
+  FAILED
+  COMPLAINED
+  UNSUBSCRIBED
+  /// Dropped at send time (opted out or suppressed after approval).
+  SKIPPED
+}
+
+/// One member's copy of one digest. Both unique keys enforce "one digest per member per week".
+model DigestDelivery {
+  id             String         @id @default(cuid())
+  digestId       String         @map("digest_id")
+  digest         WeeklyDigest   @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  memberId       String         @map("member_id")
+  member         Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  weekKey        String         @map("week_key") @db.VarChar(10)
+  /// "digest:<weekKey>:<memberId>" — sent to Mailgun as v:delivery_id's companion key.
+  idempotencyKey String         @unique @map("idempotency_key") @db.VarChar(120)
+  batchId        String?        @map("batch_id")
+  batch          DigestBatch?   @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  status         DeliveryStatus @default(QUEUED)
+
+  mailgunMessageId String?   @map("mailgun_message_id") @db.VarChar(255)
+  attempts         Int       @default(0)
+  lastErrorCode    String?   @map("last_error_code") @db.VarChar(20)
+  lastErrorMessage String?   @map("last_error_message") @db.VarChar(1000)
+  lastEventAt      DateTime? @map("last_event_at")
+  deliveredAt      DateTime? @map("delivered_at")
+  failedAt         DateTime? @map("failed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@unique([digestId, memberId])
+  @@unique([weekKey, memberId])
+  @@index([digestId, status])
+  @@index([batchId])
+  @@map("digest_deliveries")
+}
+
+/// Every Mailgun webhook we accepted. Unique token/id make replays and re-deliveries no-ops.
+model MailgunWebhookEvent {
+  id             String    @id @default(cuid())
+  /// signature.token from the webhook; a replayed request reuses it.
+  signatureToken String    @unique @map("signature_token") @db.VarChar(100)
+  /// event-data.id; Mailgun may deliver the same event more than once.
+  eventId        String    @unique @map("event_id") @db.VarChar(100)
+  eventType      String    @map("event_type") @db.VarChar(40)
+  deliveryId     String?   @map("delivery_id") @db.VarChar(40)
+  /// Minimal, email-masked copy of the payload for troubleshooting.
+  payload        Json
+  receivedAt     DateTime  @map("received_at")
+  processedAt    DateTime? @map("processed_at")
+
+  @@index([deliveryId])
+  @@map("mailgun_webhook_events")
+}
+
+// ─── Job queue (MySQL-backed) ──────────────────────────────────────
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  /// Gave up after maxAttempts.
+  DEAD
+  CANCELLED
+}
+
+/// Background work. Claimed with SELECT … FOR UPDATE SKIP LOCKED; jobKey makes enqueueing idempotent.
+model Job {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @db.VarChar(64)
+  /// Idempotency key, e.g. "digest.create-draft:2026-10-26". Enqueueing the same key twice is a no-op.
+  jobKey      String    @unique @map("job_key") @db.VarChar(191)
+  payload     Json
+  status      JobStatus @default(QUEUED)
+  runAt       DateTime  @map("run_at")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5) @map("max_attempts")
+  lockedAt    DateTime? @map("locked_at")
+  lockedBy    String?   @map("locked_by") @db.VarChar(64)
+  lastError   String?   @map("last_error") @db.Text
+  finishedAt  DateTime? @map("finished_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([status, runAt])
+  @@map("jobs")
 }
 
 // ─── Run + audit logs ──────────────────────────────────────────────
