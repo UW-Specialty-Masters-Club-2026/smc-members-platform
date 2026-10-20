@@ -1,6 +1,7 @@
 import { InvalidLocalTimeError, parsePtLocal } from '@smc/core';
 import { Router } from 'express';
 import { z } from 'zod';
+import { checkIn, undoCheckIn } from '../attendance/service';
 import type { AppContext } from '../context';
 import { HttpError } from '../errors';
 import {
@@ -127,7 +128,10 @@ export function adminEventsRouter(ctx: AppContext): Router {
   router.get('/:id/registrations', async (req, res) => {
     const rows = await ctx.prisma.registration.findMany({
       where: { eventId: req.params.id },
-      include: { member: { select: { firstName: true, lastName: true, email: true } } },
+      include: {
+        member: { select: { firstName: true, lastName: true, email: true } },
+        attendance: { select: { checkedInAt: true, method: true } },
+      },
       orderBy: [{ status: 'asc' }, { registeredAt: 'asc' }],
     });
     res.json({
@@ -138,9 +142,30 @@ export function adminEventsRouter(ctx: AppContext): Router {
         confirmedAt: r.confirmedAt,
         cancelledAt: r.cancelledAt,
         member: r.member,
+        checkedInAt: r.attendance?.checkedInAt ?? null,
+        checkInMethod: r.attendance?.method ?? null,
       })),
     });
   });
+
+  /** Manual check-in from the roster (no phone needed), and undo for mistakes. */
+  router.post('/:id/registrations/:registrationId/checkin', async (req, res) => {
+    await ownRegistration(String(req.params.id), String(req.params.registrationId));
+    res.json(
+      await checkIn(ctx, req.runId, staff(req), String(req.params.registrationId), 'MANUAL'),
+    );
+  });
+
+  router.delete('/:id/registrations/:registrationId/checkin', async (req, res) => {
+    await ownRegistration(String(req.params.id), String(req.params.registrationId));
+    await undoCheckIn(ctx, req.runId, staff(req), String(req.params.registrationId));
+    res.status(204).end();
+  });
+
+  async function ownRegistration(eventId: string, registrationId: string) {
+    const found = await ctx.prisma.registration.count({ where: { id: registrationId, eventId } });
+    if (!found) throw new HttpError(404, 'registration_not_found');
+  }
 
   return router;
 }

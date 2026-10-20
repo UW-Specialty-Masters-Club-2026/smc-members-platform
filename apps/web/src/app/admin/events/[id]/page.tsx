@@ -11,7 +11,15 @@ interface RosterRow {
   status: RegistrationStatus;
   registeredAt: string;
   member: { firstName: string; lastName: string; email: string };
+  checkedInAt: string | null;
+  checkInMethod: 'QR' | 'MANUAL' | null;
 }
+
+const CHECKIN_ERRORS: Record<string, string> = {
+  outside_checkin_window: 'Check-in opens 2 hours before the event and closes 3 hours after it.',
+  not_confirmed: 'Only confirmed registrations can be checked in.',
+  event_not_active: 'This event isn’t active.',
+};
 
 type Action = 'publish' | 'cancel' | 'complete';
 
@@ -56,6 +64,14 @@ export default function AdminEventPage() {
     }
   }
 
+  async function toggleCheckIn(r: RosterRow) {
+    const res = await api(`/admin/events/${id}/registrations/${r.id}/checkin`, {
+      method: r.checkedInAt ? 'DELETE' : 'POST',
+    });
+    if (!res.ok) setMessage(CHECKIN_ERRORS[res.error ?? ''] ?? 'Check-in update failed.');
+    await load();
+  }
+
   if (!event) {
     return (
       <main className="page">
@@ -83,6 +99,8 @@ export default function AdminEventPage() {
       <p>
         <span className="tag">{event.status}</span>{' '}
         {event.status !== 'DRAFT' && <Link href={`/events/${event.slug}`}>View public page</Link>}
+        {' · '}
+        <Link href={`/admin/events/${event.id}/survey`}>Feedback survey</Link>
       </p>
       {message && (
         <p className="notice" role="status">
@@ -141,7 +159,8 @@ export default function AdminEventPage() {
 
       <h2 style={{ marginTop: 32 }}>
         Registrations · {event.confirmedCount} confirmed
-        {event.capacity !== null && ` of ${event.capacity}`} · {event.waitlistCount} waitlisted
+        {event.capacity !== null && ` of ${event.capacity}`} · {event.waitlistCount} waitlisted ·{' '}
+        {roster.filter((r) => r.checkedInAt).length} checked in
       </h2>
       <div className="table-wrap">
         <table className="data">
@@ -151,6 +170,7 @@ export default function AdminEventPage() {
               <th scope="col">Email</th>
               <th scope="col">Status</th>
               <th scope="col">Registered</th>
+              <th scope="col">Check-in</th>
             </tr>
           </thead>
           <tbody>
@@ -166,6 +186,20 @@ export default function AdminEventPage() {
                     timeZone: 'America/Los_Angeles',
                   })}{' '}
                   PT
+                </td>
+                <td>
+                  {r.status === 'CONFIRMED' && (
+                    <button
+                      type="button"
+                      className="btn btn--outline btn--small"
+                      onClick={() => void toggleCheckIn(r)}
+                      aria-label={`${r.checkedInAt ? 'Undo check-in for' : 'Check in'} ${r.member.firstName} ${r.member.lastName}`}
+                    >
+                      {r.checkedInAt
+                        ? `✓ ${r.checkInMethod === 'QR' ? 'QR' : 'Manual'} · Undo`
+                        : 'Check in'}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

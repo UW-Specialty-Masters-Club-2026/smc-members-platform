@@ -24,7 +24,12 @@ function appWithoutDb() {
     logger: captureLogger().logger,
     mailer: new MemoryMailer(),
     now: () => new Date(),
-    config: { appEnv: 'test', appBaseUrl: 'http://localhost:3000', authRateLimitPerIp: 100 },
+    config: {
+      appEnv: 'test',
+      appBaseUrl: 'http://localhost:3000',
+      authRateLimitPerIp: 100,
+      linkSigningSecret: 'x'.repeat(32),
+    },
   });
 }
 

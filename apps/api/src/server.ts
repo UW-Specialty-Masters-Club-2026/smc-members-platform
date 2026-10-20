@@ -16,7 +16,12 @@ const app = createApp({
   logger,
   mailer: createMailer(env),
   now: () => new Date(),
-  config: { appEnv: env.APP_ENV, appBaseUrl: env.APP_BASE_URL, authRateLimitPerIp: 10 },
+  config: {
+    appEnv: env.APP_ENV,
+    appBaseUrl: env.APP_BASE_URL,
+    authRateLimitPerIp: 10,
+    linkSigningSecret: env.LINK_SIGNING_SECRET,
+  },
 });
 
 const server = app.listen(env.API_PORT, () => {

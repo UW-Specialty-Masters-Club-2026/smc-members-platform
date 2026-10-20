@@ -15,6 +15,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [myEvents, setMyEvents] = useState<EventView[]>([]);
+  const [surveys, setSurveys] = useState<{ id: string; title: string; eventTitle: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -25,6 +26,9 @@ export default function ProfilePage() {
     });
     void api<{ registrations: EventView[] }>('/me/registrations').then((res) =>
       setMyEvents(res.data?.registrations ?? []),
+    );
+    void api<{ surveys: { id: string; title: string; eventTitle: string }[] }>('/me/surveys').then(
+      (res) => setSurveys(res.data?.surveys ?? []),
     );
   }, [router]);
 
@@ -105,6 +109,21 @@ export default function ProfilePage() {
           </button>
         </div>
       </section>
+
+      {surveys.length > 0 && (
+        <section className="card" aria-labelledby="feedback" style={{ marginTop: 16 }}>
+          <h2 id="feedback" style={{ marginTop: 0, fontSize: 20 }}>
+            Feedback requested
+          </h2>
+          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
+            {surveys.map((s) => (
+              <li key={s.id}>
+                <Link href={`/surveys/${s.id}`}>{s.title}</Link> · {s.eventTitle}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="card" aria-labelledby="my-events" style={{ marginTop: 16 }}>
         <h2 id="my-events" style={{ marginTop: 0, fontSize: 20 }}>

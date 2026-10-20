@@ -3,12 +3,14 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { adminEventsRouter } from './admin/events';
 import { adminMembersRouter } from './admin/members';
+import { staffCheckInRouter } from './attendance/routes';
 import { authRouter } from './auth/routes';
 import type { AppContext } from './context';
 import { errorHandler } from './errors';
 import { eventsRouter, myRegistrationsRouter } from './events/routes';
 import { meRouter } from './members/routes';
 import { loadSession, requireSameOrigin } from './middleware/access';
+import { adminSurveyRouter, mySurveysRouter, surveysRouter } from './surveys/routes';
 import { requestId } from './middleware/request-id';
 
 export function createApp(ctx: AppContext): Express {
@@ -30,10 +32,14 @@ export function createApp(ctx: AppContext): Express {
   browser.use(loadSession(ctx));
   browser.use('/auth', authRouter(ctx));
   browser.use('/me/registrations', myRegistrationsRouter(ctx));
+  browser.use('/me/surveys', mySurveysRouter(ctx));
   browser.use('/me', meRouter(ctx));
   browser.use('/events', eventsRouter(ctx));
   browser.use('/admin/members', adminMembersRouter(ctx));
+  browser.use('/admin/events/:id/survey', adminSurveyRouter(ctx));
   browser.use('/admin/events', adminEventsRouter(ctx));
+  browser.use('/staff/checkin', staffCheckInRouter(ctx));
+  browser.use('/surveys', surveysRouter(ctx));
   app.use(browser);
 
   app.use((_req, res) => {

@@ -28,6 +28,8 @@ export const baseEnvSchema = z.object({
     message: 'must not be a uw.edu address (we cannot set SPF/DKIM for UW domains)',
   }),
   MAIL_REPLY_TO: z.email().default('smcommittee@uw.edu'),
+  /** HMAC key for login-free links (check-in QR codes, unsubscribe). 32+ random characters. */
+  LINK_SIGNING_SECRET: z.string().min(32, 'must be at least 32 characters'),
 });
 
 export const apiEnvSchema = baseEnvSchema.extend({

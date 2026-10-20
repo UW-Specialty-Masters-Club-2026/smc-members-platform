@@ -1,5 +1,6 @@
 import type { RegistrationStatus } from '@smc/db';
 import { Router } from 'express';
+import { checkInUrl, checkInWindow } from '../attendance/service';
 import type { AppContext } from '../context';
 import { HttpError } from '../errors';
 import { requireAuth } from '../middleware/access';
@@ -44,10 +45,21 @@ export function eventsRouter(ctx: AppContext): Router {
     const mine = req.auth
       ? await ctx.prisma.registration.findUnique({
           where: { eventId_memberId: { eventId: event.id, memberId: req.auth.memberId } },
-          select: { status: true },
+          select: { id: true, status: true, attendance: { select: { checkedInAt: true } } },
         })
       : null;
-    res.json(eventView(event, counts, ctx.now(), mine?.status ?? null));
+    res.json({
+      ...eventView(event, counts, ctx.now(), mine?.status ?? null),
+      // Only the registered member ever receives their own check-in code.
+      checkIn:
+        mine?.status === 'CONFIRMED'
+          ? {
+              url: checkInUrl(ctx, mine.id),
+              checkedInAt: mine.attendance?.checkedInAt ?? null,
+              ...checkInWindow(event),
+            }
+          : null,
+    });
   });
 
   router.post('/:slug/registration', requireAuth, async (req, res) => {

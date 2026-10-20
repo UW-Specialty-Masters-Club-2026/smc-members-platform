@@ -9,10 +9,16 @@ import { SESSION_COOKIE } from '../middleware/access';
 export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 export const hasTestDb = Boolean(TEST_DATABASE_URL);
 export const WEB_ORIGIN = 'http://localhost:3000';
+export const TEST_LINK_SECRET = 'test-link-signing-secret-0123456789abcdef';
 
 /** Child tables first. */
 const TABLES = [
   'audit_logs',
+  'survey_answers',
+  'survey_responses',
+  'survey_questions',
+  'surveys',
+  'attendance',
   'registrations',
   'events',
   'sessions',
@@ -52,7 +58,12 @@ export function createHarness(): TestHarness {
     logger: createLogger({ level: 'debug' }, sink),
     mailer,
     now: () => new Date(now),
-    config: { appEnv: 'test', appBaseUrl: WEB_ORIGIN, authRateLimitPerIp: 1000 },
+    config: {
+      appEnv: 'test',
+      appBaseUrl: WEB_ORIGIN,
+      authRateLimitPerIp: 1000,
+      linkSigningSecret: TEST_LINK_SECRET,
+    },
   };
 
   return {

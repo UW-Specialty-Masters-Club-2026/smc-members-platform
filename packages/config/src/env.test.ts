@@ -7,6 +7,7 @@ const valid = {
   API_BASE_URL: 'http://localhost:4000',
   DATABASE_URL: 'mysql://smc:secret@localhost:3306/smc',
   MAIL_FROM: 'Specialty Masters Club <news@mail.smc.example>',
+  LINK_SIGNING_SECRET: 'x'.repeat(32),
 };
 
 describe('parseEnv', () => {
@@ -47,6 +48,12 @@ describe('parseEnv', () => {
         APP_BASE_URL: 'https://staging.smc.example',
       }),
     ).toThrow(/dev-outbox/);
+  });
+
+  it('requires a strong link signing secret', () => {
+    expect(() => parseEnv(apiEnvSchema, { ...valid, LINK_SIGNING_SECRET: 'short' })).toThrow(
+      /LINK_SIGNING_SECRET/,
+    );
   });
 
   it('never includes secret values in the error message', () => {

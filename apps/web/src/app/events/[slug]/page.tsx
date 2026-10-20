@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { CheckInCode } from '@/components/CheckInCode';
 import { CLOSED_MESSAGE, EventFacts } from '@/components/EventFacts';
 import { api, rememberNext, type EventView } from '@/lib/api';
 
@@ -124,6 +125,13 @@ export default function EventPage() {
           >
             {a.kind === 'waitlist' ? 'Join waitlist' : 'Register'}
           </button>
+        )}
+        {event.checkIn && event.status === 'PUBLISHED' && (
+          <CheckInCode
+            url={event.checkIn.url}
+            checkedInAt={event.checkIn.checkedInAt}
+            opensAt={event.checkIn.opensAt}
+          />
         )}
       </article>
     </main>

@@ -9,6 +9,8 @@ export interface AppConfig {
   appBaseUrl: string;
   /** Max auth emails requested per IP per 15 minutes. */
   authRateLimitPerIp: number;
+  /** HMAC key for login-free links (check-in codes, unsubscribe). */
+  linkSigningSecret: string;
 }
 
 /** Everything a request handler needs, injected so tests can swap the clock and mailer. */

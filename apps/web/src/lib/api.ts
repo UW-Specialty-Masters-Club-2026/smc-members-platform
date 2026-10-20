@@ -72,6 +72,8 @@ export interface EventView {
   seats: string | null;
   availability: Availability;
   myRegistration: RegistrationStatus | null;
+  /** Present only for the signed-in member's own confirmed registration. */
+  checkIn?: { url: string; checkedInAt: string | null; opensAt: string; closesAt: string } | null;
 }
 
 /** Only same-site paths are allowed as post-login destinations. */
@@ -97,4 +99,15 @@ export function takeNext(): string | null {
   } catch {
     return null;
   }
+}
+
+export type QuestionKind = 'RATING' | 'TEXT' | 'SINGLE_CHOICE';
+
+export interface SurveyQuestion {
+  id: string;
+  position: number;
+  kind: QuestionKind;
+  prompt: string;
+  required: boolean;
+  options: string[] | null;
 }
