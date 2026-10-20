@@ -2,6 +2,7 @@ export * from './mailer';
 export * from './escape';
 export * from './contrast';
 export * from './mailgun';
+export * from './mailgun-webhook';
 export * from './dev-transport';
 export * from './factory';
 export * from './templates/magic-link';

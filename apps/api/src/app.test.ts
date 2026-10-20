@@ -35,6 +35,7 @@ function appWithoutDb() {
       emailAllowlist: [],
       digestLookaheadDays: 21,
       digestLogoUrl: null,
+      mailgunWebhookSigningKey: null,
     },
   });
 }

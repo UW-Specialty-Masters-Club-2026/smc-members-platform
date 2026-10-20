@@ -39,6 +39,8 @@ export const baseEnvSchema = z.object({
     .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/i, 'must be a domain name')
     .refine((d) => !/(^|\.)uw\.edu$/i.test(d), { message: 'must not be a uw.edu domain' })
     .optional(),
+  /** Mailgun "HTTP webhook signing key" (Sending → Webhooks). Verifies webhook signatures. */
+  MAILGUN_WEBHOOK_SIGNING_KEY: z.string().min(16).optional(),
   /** Region endpoint: US or EU. */
   MAILGUN_BASE_URL: z
     .enum(['https://api.mailgun.net', 'https://api.eu.mailgun.net'])
@@ -105,6 +107,7 @@ export function parseEnv<S extends z.ZodType>(
     MAIL_TRANSPORT?: string;
     MAILGUN_API_KEY?: string;
     MAILGUN_DOMAIN?: string;
+    MAILGUN_WEBHOOK_SIGNING_KEY?: string;
     MAIL_FROM?: string;
   };
   const problems: string[] = [];
@@ -120,6 +123,9 @@ export function parseEnv<S extends z.ZodType>(
     if (!env.MAILGUN_API_KEY)
       problems.push('MAILGUN_API_KEY: required when MAIL_TRANSPORT=mailgun');
     if (!env.MAILGUN_DOMAIN) problems.push('MAILGUN_DOMAIN: required when MAIL_TRANSPORT=mailgun');
+    if (!env.MAILGUN_WEBHOOK_SIGNING_KEY) {
+      problems.push('MAILGUN_WEBHOOK_SIGNING_KEY: required when MAIL_TRANSPORT=mailgun');
+    }
     const fromDomain = (/<([^>]+)>/.exec(env.MAIL_FROM ?? '')?.[1] ?? env.MAIL_FROM ?? '')
       .split('@')[1]
       ?.toLowerCase();

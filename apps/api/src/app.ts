@@ -8,6 +8,7 @@ import { staffCheckInRouter } from './attendance/routes';
 import { authRouter } from './auth/routes';
 import type { AppContext } from './context';
 import { publicDigestRouter } from './digests/public';
+import { oneClickUnsubscribeRouter, unsubscribePageRouter } from './email/unsubscribe';
 import { errorHandler } from './errors';
 import { eventsRouter, myRegistrationsRouter } from './events/routes';
 import { meRouter } from './members/routes';
@@ -15,6 +16,7 @@ import { adminNewsRouter, newsRouter } from './news/routes';
 import { loadSession, requireSameOrigin } from './middleware/access';
 import { adminSurveyRouter, mySurveysRouter, surveysRouter } from './surveys/routes';
 import { requestId } from './middleware/request-id';
+import { mailgunWebhookRouter } from './webhooks/mailgun';
 
 export function createApp(ctx: AppContext): Express {
   const app = express();
@@ -26,6 +28,10 @@ export function createApp(ctx: AppContext): Express {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
+
+  // Machine-to-machine endpoints: no cookies or Origin; authenticated by signatures/tokens.
+  app.use('/webhooks/mailgun', mailgunWebhookRouter(ctx));
+  app.use('/email/unsubscribe/one-click', oneClickUnsubscribeRouter(ctx));
 
   // Browser-facing JSON API (reached through the web app's /api proxy, same origin).
   const browser = express.Router();
@@ -45,6 +51,7 @@ export function createApp(ctx: AppContext): Express {
   browser.use('/admin/news', adminNewsRouter(ctx));
   browser.use('/admin/digests', adminDigestsRouter(ctx));
   browser.use('/digest', publicDigestRouter(ctx));
+  browser.use('/email/unsubscribe', unsubscribePageRouter(ctx));
   browser.use('/staff/checkin', staffCheckInRouter(ctx));
   browser.use('/surveys', surveysRouter(ctx));
   app.use(browser);

@@ -73,6 +73,7 @@ describe('Mailgun settings', () => {
     MAIL_TRANSPORT: 'mailgun',
     MAILGUN_API_KEY: 'key-0123456789abcdef',
     MAILGUN_DOMAIN: 'mail.smc.example',
+    MAILGUN_WEBHOOK_SIGNING_KEY: 'whsec-0123456789abcdef',
   };
 
   it('accepts a complete Mailgun configuration with US default region', () => {
@@ -81,7 +82,10 @@ describe('Mailgun settings', () => {
     expect(env.MAILGUN_TEST_MODE).toBe(false);
   });
 
-  it('requires the key and domain', () => {
+  it('requires the key, domain and webhook signing key', () => {
+    expect(() =>
+      parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_WEBHOOK_SIGNING_KEY: undefined }),
+    ).toThrow(/MAILGUN_WEBHOOK_SIGNING_KEY/);
     expect(() => parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_API_KEY: undefined })).toThrow(
       /MAILGUN_API_KEY/,
     );

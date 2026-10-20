@@ -5,3 +5,4 @@ export * from './recipients';
 export * from './send';
 export * from './workflow';
 export * from './cron';
+export * from './suppression';

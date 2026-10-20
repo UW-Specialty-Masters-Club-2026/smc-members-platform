@@ -27,6 +27,7 @@ const app = createApp({
     emailAllowlist: env.EMAIL_ALLOWLIST,
     digestLookaheadDays: env.DIGEST_EVENT_LOOKAHEAD_DAYS,
     digestLogoUrl: env.DIGEST_LOGO_URL ?? null,
+    mailgunWebhookSigningKey: env.MAILGUN_WEBHOOK_SIGNING_KEY ?? null,
   },
 });
 
