@@ -3,6 +3,8 @@ export interface ApiResult<T> {
   status: number;
   data: T | null;
   error: string | null;
+  /** Invalid field names on a 400 `invalid_request`. */
+  fields?: string[];
 }
 
 /** Same-origin JSON call to the Express API through the /api proxy. */
@@ -22,6 +24,7 @@ export async function api<T = unknown>(
     status: res.status,
     data: res.ok ? (json as T) : null,
     error: res.ok ? null : ((json as { error?: string } | null)?.error ?? 'request_failed'),
+    fields: res.ok ? undefined : (json as { fields?: string[] } | null)?.fields,
   };
 }
 
@@ -36,4 +39,62 @@ export interface Profile {
   newsOptIn: boolean;
   newsOptInUpdatedAt: string | null;
   emailSuppressedReason: 'UNSUBSCRIBED' | 'COMPLAINED' | 'HARD_BOUNCE' | null;
+}
+
+export type Availability =
+  | { kind: 'open'; seatsLeft: number | null }
+  | { kind: 'waitlist' }
+  | { kind: 'full' }
+  | {
+      kind: 'closed';
+      reason: 'not_published' | 'cancelled' | 'completed' | 'started' | 'registration_closed';
+    };
+
+export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
+
+export interface EventView {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  details: string | null;
+  status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  startsAt: string;
+  endsAt: string | null;
+  when: string;
+  location: string;
+  capacity: number | null;
+  waitlistEnabled: boolean;
+  registrationOpen: boolean;
+  registrationClosesAt: string | null;
+  confirmedCount: number;
+  waitlistCount: number;
+  seats: string | null;
+  availability: Availability;
+  myRegistration: RegistrationStatus | null;
+}
+
+/** Only same-site paths are allowed as post-login destinations. */
+export function safeNext(value: string | null | undefined): string | null {
+  return value && value.startsWith('/') && !value.startsWith('//') ? value : null;
+}
+
+const NEXT_KEY = 'smc:next';
+
+export function rememberNext(path: string | null) {
+  try {
+    if (path) localStorage.setItem(NEXT_KEY, path);
+  } catch {
+    /* storage unavailable: fall back to the profile page */
+  }
+}
+
+export function takeNext(): string | null {
+  try {
+    const value = localStorage.getItem(NEXT_KEY);
+    localStorage.removeItem(NEXT_KEY);
+    return safeNext(value);
+  } catch {
+    return null;
+  }
 }

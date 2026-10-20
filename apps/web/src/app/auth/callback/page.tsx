@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api, takeNext } from '@/lib/api';
 
 /**
  * Magic-link landing page. The token is in the URL fragment (never sent to a server),
@@ -28,7 +28,7 @@ export default function AuthCallbackPage() {
     const res = await api('/auth/verify', { method: 'POST', body: { token } });
     setBusy(false);
     if (res.ok) {
-      router.replace('/me/profile');
+      router.replace(takeNext() ?? '/me/profile');
     } else {
       setError(
         res.error === 'account_inactive'

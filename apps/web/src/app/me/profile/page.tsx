@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { api, type Profile } from '@/lib/api';
+import { api, type EventView, type Profile } from '@/lib/api';
 
 const SUPPRESSION_NOTE: Record<NonNullable<Profile['emailSuppressedReason']>, string> = {
   UNSUBSCRIBED: 'You unsubscribed from an email.',
@@ -14,6 +14,7 @@ const SUPPRESSION_NOTE: Record<NonNullable<Profile['emailSuppressedReason']>, st
 export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [myEvents, setMyEvents] = useState<EventView[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -22,6 +23,9 @@ export default function ProfilePage() {
       if (res.status === 401) router.replace('/login');
       else setProfile(res.data);
     });
+    void api<{ registrations: EventView[] }>('/me/registrations').then((res) =>
+      setMyEvents(res.data?.registrations ?? []),
+    );
   }, [router]);
 
   async function setNewsOptIn(newsOptIn: boolean) {
@@ -86,6 +90,11 @@ export default function ProfilePage() {
         </p>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
+          {profile.role !== 'MEMBER' && (
+            <Link className="btn btn--outline" href="/admin/events">
+              Manage events
+            </Link>
+          )}
           {profile.role === 'ADMIN' && (
             <Link className="btn btn--outline" href="/admin/members">
               Manage members
@@ -95,6 +104,30 @@ export default function ProfilePage() {
             Sign out
           </button>
         </div>
+      </section>
+
+      <section className="card" aria-labelledby="my-events" style={{ marginTop: 16 }}>
+        <h2 id="my-events" style={{ marginTop: 0, fontSize: 20 }}>
+          My events
+        </h2>
+        {myEvents.length === 0 ? (
+          <p className="muted" style={{ marginBottom: 0 }}>
+            You’re not registered for any upcoming events. <Link href="/events">Browse events</Link>
+          </p>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
+            {myEvents.map((e) => (
+              <li key={e.id}>
+                <Link href={`/events/${e.slug}`}>{e.title}</Link> · {e.when}
+                {e.status === 'CANCELLED'
+                  ? ' · cancelled'
+                  : e.myRegistration === 'WAITLISTED'
+                    ? ' · waitlist'
+                    : ''}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

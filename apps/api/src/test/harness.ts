@@ -11,7 +11,14 @@ export const hasTestDb = Boolean(TEST_DATABASE_URL);
 export const WEB_ORIGIN = 'http://localhost:3000';
 
 /** Child tables first. */
-const TABLES = ['audit_logs', 'sessions', 'magic_link_tokens', 'members'];
+const TABLES = [
+  'audit_logs',
+  'registrations',
+  'events',
+  'sessions',
+  'magic_link_tokens',
+  'members',
+];
 
 export interface TestHarness {
   ctx: AppContext;
@@ -89,7 +96,7 @@ export async function signedInMember(
     data: {
       memberId: member.id,
       tokenHash: hashToken(token),
-      expiresAt: new Date(h.ctx.now().getTime() + 86_400_000),
+      expiresAt: new Date(h.ctx.now().getTime() + 30 * 86_400_000),
     },
   });
   return { member, cookie: `${SESSION_COOKIE}=${token}` };
