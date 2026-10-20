@@ -10,7 +10,6 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@smc/digest": "^0.0.0",
     "mjml": "^5.4.1"
   }
 }

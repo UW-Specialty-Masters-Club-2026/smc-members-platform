@@ -1,4 +1,4 @@
-import type { DigestEvent, DigestNews } from './content';
+import type { DigestEvent, DigestNews } from '@smc/email';
 
 const WORDS = [
   'zero',

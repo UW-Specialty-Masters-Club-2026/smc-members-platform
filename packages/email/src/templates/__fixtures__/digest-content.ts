@@ -1,4 +1,4 @@
-import type { DigestContent } from '@smc/digest';
+import type { DigestContent } from '../digest-content';
 
 /** Mirrors the approved design: two events (one open, one full) and a recruiting post. */
 export const DESIGN_CONTENT: DigestContent = {

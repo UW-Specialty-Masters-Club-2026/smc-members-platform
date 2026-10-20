@@ -2,7 +2,7 @@
 // be visible when other workspaces type-check this file.
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../mjml.d.ts" />
-import type { DigestContent, DigestEvent, DigestNews } from '@smc/digest';
+import type { DigestContent, DigestEvent, DigestNews } from './digest-content';
 import mjml2html from 'mjml';
 import { escapeHtml } from '../escape';
 

@@ -1,4 +1,4 @@
-import type { DigestContent } from '@smc/digest';
+import type { DigestContent } from './digest-content';
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from '../contrast';
 import { DESIGN_CONTENT } from './__fixtures__/digest-content';

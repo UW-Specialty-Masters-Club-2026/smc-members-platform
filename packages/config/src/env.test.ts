@@ -67,6 +67,68 @@ describe('parseEnv', () => {
   });
 });
 
+describe('Mailgun settings', () => {
+  const mailgun = {
+    ...valid,
+    MAIL_TRANSPORT: 'mailgun',
+    MAILGUN_API_KEY: 'key-0123456789abcdef',
+    MAILGUN_DOMAIN: 'mail.smc.example',
+  };
+
+  it('accepts a complete Mailgun configuration with US default region', () => {
+    const env = parseEnv(apiEnvSchema, mailgun);
+    expect(env.MAILGUN_BASE_URL).toBe('https://api.mailgun.net');
+    expect(env.MAILGUN_TEST_MODE).toBe(false);
+  });
+
+  it('requires the key and domain', () => {
+    expect(() => parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_API_KEY: undefined })).toThrow(
+      /MAILGUN_API_KEY/,
+    );
+    expect(() => parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_DOMAIN: undefined })).toThrow(
+      /MAILGUN_DOMAIN/,
+    );
+  });
+
+  it('allows only the US or EU endpoints', () => {
+    expect(
+      parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_BASE_URL: 'https://api.eu.mailgun.net' })
+        .MAILGUN_BASE_URL,
+    ).toBe('https://api.eu.mailgun.net');
+    expect(() =>
+      parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_BASE_URL: 'https://evil.example' }),
+    ).toThrow(/MAILGUN_BASE_URL/);
+  });
+
+  it('refuses a uw.edu sending domain and a From outside the sending domain', () => {
+    expect(() => parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_DOMAIN: 'mail.uw.edu' })).toThrow(
+      /MAILGUN_DOMAIN/,
+    );
+    expect(() =>
+      parseEnv(apiEnvSchema, { ...mailgun, MAIL_FROM: 'SMC <news@other.example>' }),
+    ).toThrow(/DMARC/);
+  });
+
+  it('parses the allowlist and rejects malformed entries', () => {
+    expect(
+      parseEnv(apiEnvSchema, { ...valid, EMAIL_ALLOWLIST: ' Tester@UW.edu, b@uw.edu ,' })
+        .EMAIL_ALLOWLIST,
+    ).toEqual(['tester@uw.edu', 'b@uw.edu']);
+    expect(() => parseEnv(apiEnvSchema, { ...valid, EMAIL_ALLOWLIST: '@uw.edu' })).toThrow(
+      /EMAIL_ALLOWLIST/,
+    );
+  });
+
+  it('never echoes the API key in errors', () => {
+    try {
+      parseEnv(apiEnvSchema, { ...mailgun, MAILGUN_DOMAIN: 'not a domain' });
+      expect.unreachable();
+    } catch (err) {
+      expect((err as Error).message).not.toContain('key-0123456789abcdef');
+    }
+  });
+});
+
 describe('isUwAddress', () => {
   it('matches uw.edu and its subdomains only', () => {
     expect(isUwAddress('a@uw.edu')).toBe(true);

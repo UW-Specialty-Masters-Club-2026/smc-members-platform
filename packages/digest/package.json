@@ -15,6 +15,7 @@
   "dependencies": {
     "@smc/core": "^0.0.0",
     "@smc/db": "^0.0.0",
+    "@smc/email": "^0.0.0",
     "luxon": "^3.7.2"
   }
 }

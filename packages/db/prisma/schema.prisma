@@ -436,6 +436,8 @@ enum DigestBatchStatus {
   /// Request outcome unknown (e.g. timeout): must be reconciled before any retry.
   UNKNOWN
   FAILED
+  /// Nobody left to send to at send time (all opted out or not allowlisted).
+  SKIPPED
 }
 
 /// One Mailgun batch request (≤ 1000 recipients).
@@ -447,6 +449,7 @@ model DigestBatch {
   status           DigestBatchStatus @default(PENDING)
   recipientCount   Int               @map("recipient_count")
   attempts         Int               @default(0)
+  /// RETRY_SCHEDULED: retry time · SENDING: lease expiry · UNKNOWN: earliest reconcile time.
   nextAttemptAt    DateTime?         @map("next_attempt_at")
   mailgunMessageId String?           @map("mailgun_message_id") @db.VarChar(255)
   lastError        String?           @map("last_error") @db.VarChar(1000)
