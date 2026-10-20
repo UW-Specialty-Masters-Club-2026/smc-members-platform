@@ -8,7 +8,8 @@
     "build": "tsup",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json",
-    "staging:draft": "tsx --env-file-if-exists=../../.env src/scripts/staging-draft.ts"
+    "staging:draft": "tsx --env-file-if-exists=../../.env src/scripts/staging-draft.ts",
+    "seed:demo": "tsx --env-file-if-exists=../../.env src/scripts/seed-demo.ts"
   },
   "dependencies": {
     "@smc/config": "^0.0.0",
@@ -18,9 +19,11 @@
     "@smc/email": "^0.0.0",
     "@smc/jobs": "^0.0.0",
     "croner": "^10.0.1",
+    "luxon": "^3.7.2",
     "pino": "^10.4.0"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.6",
     "tsup": "^9.0.0"
   }
 }

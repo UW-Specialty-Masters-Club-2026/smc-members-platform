@@ -82,6 +82,16 @@ function shortDate(weekKey: string): string {
   });
 }
 
+/** "Mon, Oct 26" — the phone header's short date (design: "Mon, [DATE]"). */
+function shortWeekday(weekKey: string): string {
+  return new Date(`${weekKey}T12:00:00Z`).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export function digestSubject(content: DigestContent): string {
   return `This week at SMC · ${shortDate(content.weekKey)}`;
 }
@@ -103,8 +113,8 @@ function header(input: DigestEmailInput): string {
   <mj-group>
     <mj-column width="55%" vertical-align="middle">${logo(input, 56)}</mj-column>
     <mj-column width="45%" vertical-align="middle">
-      <mj-text align="right" padding="0" font-size="12px" font-weight="800" letter-spacing="2px" color="${COLORS.gold}">WEEKLY DIGEST</mj-text>
-      <mj-text align="right" padding="4px 0 0" font-size="14px" font-weight="500" color="${COLORS.lavender}">${e(input.content.dateLabel)}</mj-text>
+      <mj-text align="right" padding="0" font-size="12px" font-weight="800" letter-spacing="2px" color="${COLORS.gold}" css-class="wd-label">WEEKLY DIGEST</mj-text>
+      <mj-text align="right" padding="4px 0 0" font-size="14px" font-weight="500" color="${COLORS.lavender}"><span class="date-long">${e(input.content.dateLabel)}</span><span class="date-short" style="display:none;mso-hide:all;">${e(shortWeekday(input.content.weekKey))}</span></mj-text>
     </mj-column>
   </mj-group>
 </mj-section>`;
@@ -186,7 +196,7 @@ function openingsTable(post: DigestNews): string {
   const rows = post.openings
     .map((o, i) => {
       const border = i < post.openings.length - 1 ? `border-bottom:1px solid ${COLORS.gold};` : '';
-      return `<tr><td class="op-num" style="${border}padding:16px 16px 16px 0;width:44px;font-family:${DISPLAY};font-size:34px;line-height:1;color:${COLORS.soft};">${pad2(i + 1)}</td><td class="op-title" style="${border}padding:16px 12px 16px 0;font-family:${SANS};font-size:16px;font-weight:800;letter-spacing:1px;color:${COLORS.white};text-transform:uppercase;">${e(o.title)}</td><td class="op-count" style="${border}padding:16px 0;font-family:${SANS};font-size:13px;font-weight:800;letter-spacing:1px;color:${COLORS.gold};text-align:right;white-space:nowrap;">${o.openings} ${o.openings === 1 ? 'OPENING' : 'OPENINGS'}</td></tr>`;
+      return `<tr><td class="op-num" style="${border}padding:16px 16px 16px 0;width:44px;font-family:${DISPLAY};font-size:34px;line-height:1;color:${COLORS.soft};white-space:nowrap;word-break:normal;">${pad2(i + 1)}</td><td class="op-title" style="${border}padding:16px 12px 16px 0;font-family:${SANS};font-size:16px;font-weight:800;letter-spacing:1px;color:${COLORS.white};text-transform:uppercase;word-break:normal;overflow-wrap:normal;">${e(o.title)}</td><td class="op-count" style="${border}padding:16px 0;font-family:${SANS};font-size:13px;font-weight:800;letter-spacing:1px;color:${COLORS.gold};text-align:right;white-space:nowrap;">${o.openings} ${o.openings === 1 ? 'OPENING' : 'OPENINGS'}</td></tr>`;
     })
     .join('\n');
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${COLORS.ink}" style="margin-top:20px;background-color:${COLORS.ink};"><tr><td style="padding:8px 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr></table>`;
@@ -250,8 +260,11 @@ const MOBILE_CSS = `
   .apply-head, .apply-body { display: block !important; width: auto !important; }
   .apply-head { padding: 22px 20px 0 !important; font-size: 30px !important; }
   .apply-body { padding: 14px 20px 22px !important; }
-  .op-num { font-size: 26px !important; width: 32px !important; }
-  .op-title { font-size: 13px !important; }
+  .op-num { font-size: 26px !important; width: 36px !important; padding-right: 12px !important; }
+  .op-title { font-size: 13px !important; letter-spacing: 0.5px !important; }
+  .date-long { display: none !important; }
+  .date-short { display: inline !important; }
+  .wd-label div { font-size: 11px !important; letter-spacing: 1.4px !important; }
   .op-count { font-size: 11px !important; }
   table.btn-full { width: 100% !important; }
   .left-mobile div { text-align: left !important; }

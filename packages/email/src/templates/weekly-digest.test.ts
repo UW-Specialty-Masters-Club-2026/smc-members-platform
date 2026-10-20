@@ -102,6 +102,16 @@ describe('weekly digest email', () => {
     expect((await render()).html).not.toMatch(/<img\b/);
   });
 
+  it('uses the short header date on phones and never splits role names', async () => {
+    const { html } = await render();
+    expect(html).toContain(
+      '<span class="date-short" style="display:none;mso-hide:all;">Mon, Oct 26</span>',
+    );
+    expect(html).toContain('.date-short { display: inline !important; }');
+    expect(html).toMatch(/class="op-title" style="[^"]*word-break:normal;/);
+    expect(html).toMatch(/class="op-num" style="[^"]*white-space:nowrap;word-break:normal;/);
+  });
+
   it('opts out of client dark-mode inversion', async () => {
     const { html } = await render();
     expect(html).toContain('<meta name="color-scheme" content="light only"');

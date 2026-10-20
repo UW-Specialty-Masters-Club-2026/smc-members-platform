@@ -247,11 +247,13 @@ export default function AdminDigestPage() {
                 {c.news.map((n) => (
                   <li key={n.id}>
                     {n.tag && (
-                      <span className="tag" style={{ marginBottom: 4 }}>
-                        {n.tag}
-                      </span>
+                      <>
+                        <span className="tag" style={{ marginBottom: 4 }}>
+                          {n.tag}
+                        </span>
+                        <br />
+                      </>
                     )}
-                    <br />
                     <strong>{n.title}</strong>
                     {n.openings.length > 0 && <> · {n.openings.length} roles</>}
                     <br />
