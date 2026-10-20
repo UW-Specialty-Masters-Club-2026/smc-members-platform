@@ -567,9 +567,16 @@ export function digestJobHandlers(
       void (await createDraft(makeDeps(ctx.runId), str(p, 'weekKey'))),
     [JOB.startSend]: async (p, ctx) =>
       void (await startSend(makeDeps(ctx.runId), str(p, 'digestId'))),
-    [JOB.sendBatch]: async (p, ctx) =>
-      void (await sendBatch(makeDeps(ctx.runId), str(p, 'batchId'))),
-    [JOB.reconcile]: async (p, ctx) =>
-      void (await reconcileUnknownBatch(makeDeps(ctx.runId), str(p, 'batchId'))),
+    // After a batch settles, close the issue right away instead of waiting for the next tick.
+    [JOB.sendBatch]: async (p, ctx) => {
+      const deps = makeDeps(ctx.runId);
+      await sendBatch(deps, str(p, 'batchId'));
+      await finalizeDigests(deps);
+    },
+    [JOB.reconcile]: async (p, ctx) => {
+      const deps = makeDeps(ctx.runId);
+      await reconcileUnknownBatch(deps, str(p, 'batchId'));
+      await finalizeDigests(deps);
+    },
   };
 }

@@ -34,3 +34,8 @@ next-env.d.ts
 
 # local dev email outbox (contains sign-in links)
 .dev-outbox/
+
+# e2e
+.e2e-outbox/
+playwright-report/
+test-results/

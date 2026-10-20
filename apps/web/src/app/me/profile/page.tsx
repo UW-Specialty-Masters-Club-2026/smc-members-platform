@@ -33,6 +33,10 @@ export default function ProfilePage() {
   }, [router]);
 
   async function setNewsOptIn(newsOptIn: boolean) {
+    if (!profile) return;
+    const previous = profile;
+    // Reflect the click immediately; roll back if the server says no.
+    setProfile({ ...profile, newsOptIn });
     setSaving(true);
     setMessage(null);
     const res = await api<Profile>('/me', { method: 'PATCH', body: { newsOptIn } });
@@ -41,6 +45,7 @@ export default function ProfilePage() {
       setProfile(res.data);
       setMessage(newsOptIn ? 'You’ll get news and invitations.' : 'News and invitations are off.');
     } else {
+      setProfile(previous);
       setMessage('Could not save. Please try again.');
     }
   }
