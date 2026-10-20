@@ -1,0 +1,51 @@
+THIS WEEK AT SMC · ISSUE 12
+Monday, October 26, 2026
+
+Hi %recipient.first_name%,
+Two events to save a seat for, and four open roles on the SMC team.
+
+UPCOMING EVENTS
+===============
+
+01  AI at Work Workshop
+    Hands-on session on putting AI tools to work in finance and analytics roles.
+    When:  Wed, Oct 28 · 6:00–7:30 PM PT
+    Where: PACCAR Hall, Room 192 · UW Seattle
+    Seats: 18 of 30 seats left
+    Register: https://smc.example/events/ai-at-work-workshop-1a2b3c
+
+02  Alumni Coffee Chat
+    Small-group conversations with Foster Specialty Master’s alumni.
+    When:  Wed, Nov 4 · 5:30–7:00 PM PT
+    Where: Dempsey Hall, Room 302 · UW Seattle
+    Seats: Full · Join the waitlist
+    Join the waitlist: https://smc.example/events/alumni-coffee-chat-4d5e6f
+
+CLUB NEWS
+=========
+
+[NOW RECRUITING]
+Join the SMC team
+SMC is growing. Help create experiences that connect Specialty Master’s students across UW Foster. All positions are open to current UW Foster Specialty Master’s students.
+
+Open roles:
+  01  Finance Officers (2 openings)
+  02  Operations (1 opening)
+  03  Alumni Outreach (1 opening)
+  04  AI & Tech (1 opening)
+
+How to apply: email smcommittee@uw.edu with:
+  - Your resume
+  - The role you’re interested in
+  - A brief note on why you’d like to join
+Read more: https://smc.example/news/join-the-smc-team-7a8b9c
+
+--
+Specialty Masters Club · UW Foster School of Business · Seattle, WA
+Questions? smcommittee@uw.edu
+Instagram @smclub_uw: https://www.instagram.com/smclub_uw
+
+You’re getting this because you opted in to SMC news and invitations.
+Manage email preferences: https://smc.example/me/profile
+Unsubscribe: %recipient.unsub_url%
+View in browser: https://smc.example/digest/2026-10-26
