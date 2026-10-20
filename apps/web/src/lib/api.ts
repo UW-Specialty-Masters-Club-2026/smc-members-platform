@@ -111,3 +111,19 @@ export interface SurveyQuestion {
   required: boolean;
   options: string[] | null;
 }
+
+export interface NewsView {
+  id: string;
+  slug: string;
+  tag: string | null;
+  title: string;
+  summary: string;
+  body: string | null;
+  linkUrl: string | null;
+  url: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  publishedAt: string | null;
+  applyEmail: string | null;
+  applyChecklist: string[] | null;
+  openings: { title: string; openings: number }[];
+}

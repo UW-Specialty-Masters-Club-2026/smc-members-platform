@@ -1,30 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPrismaClient, Prisma, type PrismaClient } from './index';
+import { assertTestDatabase, resetDatabase } from './testing';
 
 const url = process.env.TEST_DATABASE_URL;
-
-/** Child tables first. */
-const TABLES = [
-  'jobs',
-  'mailgun_webhook_events',
-  'digest_deliveries',
-  'digest_batches',
-  'weekly_digests',
-  'digest_settings',
-  'news_openings',
-  'news_posts',
-  'audit_logs',
-  'survey_answers',
-  'survey_responses',
-  'survey_questions',
-  'surveys',
-  'attendance',
-  'registrations',
-  'events',
-  'sessions',
-  'magic_link_tokens',
-  'members',
-];
 
 function isUniqueViolation(err: unknown): boolean {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002';
@@ -33,11 +11,11 @@ function isUniqueViolation(err: unknown): boolean {
 describe.skipIf(!url)('digest schema constraints', () => {
   let db: PrismaClient;
   beforeAll(() => {
-    if (!new URL(url!).pathname.endsWith('_test')) throw new Error('not a test database');
+    assertTestDatabase(url!);
     db = createPrismaClient(url!);
   });
   beforeEach(async () => {
-    for (const t of TABLES) await db.$executeRawUnsafe(`DELETE FROM \`${t}\``);
+    await resetDatabase(db);
   });
   afterAll(() => db.$disconnect());
 

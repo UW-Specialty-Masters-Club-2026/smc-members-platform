@@ -9,6 +9,7 @@ export function SiteHeader() {
         </Link>
         <nav aria-label="Main">
           <Link href="/events">Events</Link>
+          <Link href="/news">News</Link>
           <Link href="/me/profile">My profile</Link>
           <Link href="/login">Sign in</Link>
           <Link href="/signup">Join</Link>

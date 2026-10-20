@@ -7,44 +7,22 @@ import {
   type ClosedReason,
 } from '@smc/core';
 import {
+  countsFor,
   Prisma,
   recordAudit,
+  type EventCounts,
   type Event,
   type MemberRole,
-  type PrismaClient,
   type RegistrationStatus,
 } from '@smc/db';
 import type { AppContext } from '../context';
 import { HttpError } from '../errors';
 
 type Tx = Prisma.TransactionClient;
-type Db = PrismaClient | Tx;
 
-export interface EventCounts {
-  confirmed: number;
-  waitlisted: number;
-}
+export { countsFor, type EventCounts };
 
 const ACTIVE: RegistrationStatus[] = ['CONFIRMED', 'WAITLISTED'];
-
-// ─── Reading ───────────────────────────────────────────────────────
-
-export async function countsFor(db: Db, eventIds: string[]): Promise<Map<string, EventCounts>> {
-  const rows = await db.registration.groupBy({
-    by: ['eventId', 'status'],
-    where: { eventId: { in: eventIds }, status: { in: ACTIVE } },
-    _count: { _all: true },
-  });
-  const map = new Map<string, EventCounts>(
-    eventIds.map((id) => [id, { confirmed: 0, waitlisted: 0 }]),
-  );
-  for (const row of rows) {
-    const c = map.get(row.eventId)!;
-    if (row.status === 'CONFIRMED') c.confirmed = row._count._all;
-    else c.waitlisted = row._count._all;
-  }
-  return map;
-}
 
 export function availabilityOf(event: Event, counts: EventCounts, now: Date): Availability {
   return eventAvailability({ ...event, confirmedCount: counts.confirmed }, now);

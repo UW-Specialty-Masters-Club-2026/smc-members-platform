@@ -1,6 +1,7 @@
 import { Writable } from 'node:stream';
 import { createLogger, generateToken, hashToken } from '@smc/core';
 import { createPrismaClient, type MemberRole, type PrismaClient } from '@smc/db';
+import { assertTestDatabase, resetDatabase } from '@smc/db/testing';
 import { MemoryMailer } from '@smc/email';
 import { createApp } from '../app';
 import type { AppContext } from '../context';
@@ -10,29 +11,6 @@ export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 export const hasTestDb = Boolean(TEST_DATABASE_URL);
 export const WEB_ORIGIN = 'http://localhost:3000';
 export const TEST_LINK_SECRET = 'test-link-signing-secret-0123456789abcdef';
-
-/** Child tables first. */
-const TABLES = [
-  'jobs',
-  'mailgun_webhook_events',
-  'digest_deliveries',
-  'digest_batches',
-  'weekly_digests',
-  'digest_settings',
-  'news_openings',
-  'news_posts',
-  'audit_logs',
-  'survey_answers',
-  'survey_responses',
-  'survey_questions',
-  'surveys',
-  'attendance',
-  'registrations',
-  'events',
-  'sessions',
-  'magic_link_tokens',
-  'members',
-];
 
 export interface TestHarness {
   ctx: AppContext;
@@ -48,9 +26,7 @@ export interface TestHarness {
 
 export function createHarness(): TestHarness {
   if (!TEST_DATABASE_URL) throw new Error('TEST_DATABASE_URL is required');
-  if (!new URL(TEST_DATABASE_URL).pathname.endsWith('_test')) {
-    throw new Error('refusing to run against a non-test database');
-  }
+  assertTestDatabase(TEST_DATABASE_URL);
   const prisma = createPrismaClient(TEST_DATABASE_URL);
   const mailer = new MemoryMailer();
   const logLines: string[] = [];
@@ -84,9 +60,7 @@ export function createHarness(): TestHarness {
       now = date;
     },
     async reset() {
-      // Children before parents; DELETE (not TRUNCATE) because pooled connections
-      // would not share a session-level FOREIGN_KEY_CHECKS=0.
-      for (const table of TABLES) await prisma.$executeRawUnsafe(`DELETE FROM \`${table}\``);
+      await resetDatabase(prisma);
       mailer.sent.length = 0;
       logLines.length = 0;
       now = new Date('2026-10-19T17:00:00Z');

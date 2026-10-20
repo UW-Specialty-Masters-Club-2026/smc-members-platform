@@ -95,9 +95,14 @@ export default function ProfilePage() {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
           {profile.role !== 'MEMBER' && (
-            <Link className="btn btn--outline" href="/admin/events">
-              Manage events
-            </Link>
+            <>
+              <Link className="btn btn--outline" href="/admin/events">
+                Manage events
+              </Link>
+              <Link className="btn btn--outline" href="/admin/news">
+                Manage news
+              </Link>
+            </>
           )}
           {profile.role === 'ADMIN' && (
             <Link className="btn btn--outline" href="/admin/members">

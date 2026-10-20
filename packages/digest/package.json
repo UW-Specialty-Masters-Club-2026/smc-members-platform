@@ -1,0 +1,20 @@
+{
+  "name": "@smc/digest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.6"
+  },
+  "dependencies": {
+    "@smc/core": "^0.0.0",
+    "@smc/db": "^0.0.0",
+    "luxon": "^3.7.2"
+  }
+}
