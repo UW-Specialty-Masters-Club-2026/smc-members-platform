@@ -1,8 +1,8 @@
 import { apiEnvSchema, parseEnv } from '@smc/config';
 import { createLogger } from '@smc/core';
 import { createPrismaClient } from '@smc/db';
+import { createMailer } from '@smc/email';
 import { createApp } from './app';
-import { createMailer } from './mailer';
 
 const env = parseEnv(apiEnvSchema);
 const logger = createLogger({

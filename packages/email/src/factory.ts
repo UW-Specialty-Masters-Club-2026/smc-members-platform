@@ -1,10 +1,6 @@
-import {
-  DevOutboxMailer,
-  MailgunClient,
-  MailgunMailer,
-  recipientGuard,
-  type Mailer,
-} from '@smc/email';
+import { DevOutboxBatchTransport } from './dev-transport';
+import { DevOutboxMailer, type Mailer } from './mailer';
+import { MailgunClient, MailgunMailer, recipientGuard } from './mailgun';
 
 export interface MailerEnv {
   APP_ENV: string;
@@ -43,4 +39,11 @@ export function createMailer(env: MailerEnv): Mailer {
     default:
       throw new Error(`unknown MAIL_TRANSPORT "${env.MAIL_TRANSPORT}"`);
   }
+}
+
+/** Digest batch transport for the configured environment (Mailgun, or the local outbox in dev). */
+export function createBatchTransport(env: MailerEnv): MailgunClient | DevOutboxBatchTransport {
+  return env.MAIL_TRANSPORT === 'mailgun'
+    ? createMailgunClient(env)
+    : new DevOutboxBatchTransport(env.DEV_OUTBOX_DIR);
 }
