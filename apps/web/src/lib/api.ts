@@ -127,3 +127,103 @@ export interface NewsView {
   applyChecklist: string[] | null;
   openings: { title: string; openings: number }[];
 }
+
+export type DigestStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'SENDING'
+  | 'SENT'
+  | 'PARTIALLY_FAILED'
+  | 'REJECTED'
+  | 'EXPIRED'
+  | 'SKIPPED';
+
+export interface DigestSummaryView {
+  id: string;
+  weekKey: string;
+  status: DigestStatus;
+  issueNumber: number | null;
+  subject: string | null;
+  summaryText: string | null;
+  recipientCountPreview: number | null;
+  skipReason: string | null;
+  approvedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface DigestScheduleView {
+  labels: { draftAt: string; sendNotBefore: string; expiresAt: string };
+  newsWindow: { start: string; end: string };
+}
+
+export interface DigestDetailView extends DigestSummaryView {
+  version: number;
+  schedule: DigestScheduleView;
+  content: {
+    dateLabel: string;
+    summary: string;
+    events: {
+      id: string;
+      title: string;
+      summary: string;
+      when: string;
+      location: string;
+      seats: string | null;
+      action: 'REGISTER' | 'JOIN_WAITLIST';
+      url: string;
+    }[];
+    news: {
+      id: string;
+      tag: string | null;
+      title: string;
+      summary: string;
+      url: string;
+      openings: { title: string; openings: number }[];
+    }[];
+    omitted: { events: number; news: number };
+  } | null;
+  recipients: {
+    total: number;
+    previewTotal: number | null;
+    scope: string;
+    byDomain: { domain: string; count: number }[];
+  };
+  approvedBy: { firstName: string; lastName: string } | null;
+  rejectedBy: { firstName: string; lastName: string } | null;
+  rejectReason: string | null;
+  results: {
+    deliveries: {
+      total: number;
+      summary: {
+        sent: number;
+        delivered: number;
+        failed: number;
+        optedOut: number;
+        skipped: number;
+        pending: number;
+      };
+    };
+    batches: {
+      batchNo: number;
+      status: string;
+      recipientCount: number;
+      attempts: number;
+      nextAttemptAt: string | null;
+      lastError: string | null;
+    }[];
+  };
+  canApprove: boolean;
+}
+
+export const DIGEST_STATUS_LABEL: Record<DigestStatus, string> = {
+  DRAFT: 'Draft',
+  PENDING_APPROVAL: 'Pending approval',
+  APPROVED: 'Approved',
+  SENDING: 'Sending',
+  SENT: 'Sent',
+  PARTIALLY_FAILED: 'Partially failed',
+  REJECTED: 'Rejected',
+  EXPIRED: 'Expired',
+  SKIPPED: 'Skipped',
+};

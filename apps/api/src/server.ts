@@ -21,6 +21,12 @@ const app = createApp({
     appBaseUrl: env.APP_BASE_URL,
     authRateLimitPerIp: 10,
     linkSigningSecret: env.LINK_SIGNING_SECRET,
+    apiBaseUrl: env.API_BASE_URL,
+    mailFrom: env.MAIL_FROM,
+    mailReplyTo: env.MAIL_REPLY_TO,
+    emailAllowlist: env.EMAIL_ALLOWLIST,
+    digestLookaheadDays: env.DIGEST_EVENT_LOOKAHEAD_DAYS,
+    digestLogoUrl: env.DIGEST_LOGO_URL ?? null,
   },
 });
 

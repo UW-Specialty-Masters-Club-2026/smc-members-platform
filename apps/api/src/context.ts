@@ -11,6 +11,14 @@ export interface AppConfig {
   authRateLimitPerIp: number;
   /** HMAC key for login-free links (check-in codes, unsubscribe). */
   linkSigningSecret: string;
+  /** Public API origin (one-click unsubscribe links). */
+  apiBaseUrl: string;
+  mailFrom: string;
+  mailReplyTo: string;
+  /** Outside production only these addresses may receive email. */
+  emailAllowlist: string[];
+  digestLookaheadDays: number;
+  digestLogoUrl: string | null;
 }
 
 /** Everything a request handler needs, injected so tests can swap the clock and mailer. */

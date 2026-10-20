@@ -1,11 +1,13 @@
 import cookieParser from 'cookie-parser';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
+import { adminDigestsRouter } from './admin/digests';
 import { adminEventsRouter } from './admin/events';
 import { adminMembersRouter } from './admin/members';
 import { staffCheckInRouter } from './attendance/routes';
 import { authRouter } from './auth/routes';
 import type { AppContext } from './context';
+import { publicDigestRouter } from './digests/public';
 import { errorHandler } from './errors';
 import { eventsRouter, myRegistrationsRouter } from './events/routes';
 import { meRouter } from './members/routes';
@@ -41,6 +43,8 @@ export function createApp(ctx: AppContext): Express {
   browser.use('/admin/events/:id/survey', adminSurveyRouter(ctx));
   browser.use('/admin/events', adminEventsRouter(ctx));
   browser.use('/admin/news', adminNewsRouter(ctx));
+  browser.use('/admin/digests', adminDigestsRouter(ctx));
+  browser.use('/digest', publicDigestRouter(ctx));
   browser.use('/staff/checkin', staffCheckInRouter(ctx));
   browser.use('/surveys', surveysRouter(ctx));
   app.use(browser);

@@ -62,6 +62,11 @@ export const baseEnvSchema = z.object({
         .filter(Boolean),
     )
     .pipe(z.array(z.email())),
+
+  /** How far ahead the digest looks for events. */
+  DIGEST_EVENT_LOOKAHEAD_DAYS: z.coerce.number().int().min(1).max(90).default(21),
+  /** Hosted logo (PNG) for emails; a text wordmark is used until it is set. */
+  DIGEST_LOGO_URL: z.url({ protocol: /^https$/ }).optional(),
 });
 
 export const apiEnvSchema = baseEnvSchema.extend({
@@ -69,10 +74,6 @@ export const apiEnvSchema = baseEnvSchema.extend({
 });
 
 export const workerEnvSchema = baseEnvSchema.extend({
-  /** How far ahead the digest looks for events. */
-  DIGEST_EVENT_LOOKAHEAD_DAYS: z.coerce.number().int().min(1).max(90).default(21),
-  /** Hosted logo (PNG) for emails; a text wordmark is used until it is set. */
-  DIGEST_LOGO_URL: z.url({ protocol: /^https$/ }).optional(),
   /** Job queue polling interval. */
   WORKER_POLL_MS: z.coerce.number().int().min(500).max(60_000).default(5000),
 });

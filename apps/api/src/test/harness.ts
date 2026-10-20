@@ -47,6 +47,12 @@ export function createHarness(): TestHarness {
       appBaseUrl: WEB_ORIGIN,
       authRateLimitPerIp: 1000,
       linkSigningSecret: TEST_LINK_SECRET,
+      apiBaseUrl: 'http://localhost:4000',
+      mailFrom: 'Specialty Masters Club <news@mail.smc.example>',
+      mailReplyTo: 'smcommittee@uw.edu',
+      emailAllowlist: [],
+      digestLookaheadDays: 21,
+      digestLogoUrl: null,
     },
   };
 

@@ -29,6 +29,12 @@ function appWithoutDb() {
       appBaseUrl: 'http://localhost:3000',
       authRateLimitPerIp: 100,
       linkSigningSecret: 'x'.repeat(32),
+      apiBaseUrl: 'http://localhost:4000',
+      mailFrom: 'Specialty Masters Club <news@mail.smc.example>',
+      mailReplyTo: 'smcommittee@uw.edu',
+      emailAllowlist: [],
+      digestLookaheadDays: 21,
+      digestLogoUrl: null,
     },
   });
 }

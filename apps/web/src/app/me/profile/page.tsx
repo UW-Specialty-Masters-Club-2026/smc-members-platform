@@ -104,6 +104,11 @@ export default function ProfilePage() {
               </Link>
             </>
           )}
+          {profile.role !== 'MEMBER' && (
+            <Link className="btn btn--outline" href="/admin/digests">
+              Weekly digest
+            </Link>
+          )}
           {profile.role === 'ADMIN' && (
             <Link className="btn btn--outline" href="/admin/members">
               Manage members
