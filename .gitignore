@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# builds
+.next/
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# test artifacts
+playwright-report/
+test-results/
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
