@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { SITE } from '@/content';
-import { api, type Profile } from '@/lib/api';
+import { api, rememberNext, type Profile } from '@/lib/api';
 import { Icon, type IconName } from './Icon';
 
 interface NavItem {
@@ -49,17 +49,42 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [me, setMe] = useState<Profile | null | undefined>(undefined);
+  const [offline, setOffline] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     void api<Profile>('/me').then((res) => {
-      if (res.status === 401) router.replace('/login');
+      if (res.status === 401) {
+        // Come back to the page they wanted after signing in.
+        rememberNext(window.location.pathname);
+        router.replace('/login');
+      } else if (!res.ok) setOffline(true);
       else setMe(res.data);
     });
   }, [router]);
 
   useEffect(() => setOpen(false), [pathname]);
 
+  if (offline) {
+    return (
+      <div className="ax ax-center">
+        <div className="ax-card ax-pad" style={{ maxWidth: 460 }}>
+          <h1 className="ax-h1">Can’t reach the server</h1>
+          <p className="ax-muted">
+            The admin workspace needs the API server. If you are running the site on your own
+            computer, start it with <code>npm run dev:api</code> and reload this page.
+          </p>
+          <button
+            type="button"
+            className="ax-btn ax-btn--primary"
+            onClick={() => location.reload()}
+          >
+            Reload
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (me === undefined) {
     return (
       <div className="ax ax-center">
