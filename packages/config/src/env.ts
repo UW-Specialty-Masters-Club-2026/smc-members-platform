@@ -1,4 +1,14 @@
+import { isAbsolute, join } from 'node:path';
 import { z } from 'zod';
+
+/**
+ * npm workspace scripts run inside apps/<name>; INIT_CWD is where `npm run` was typed (the
+ * repo root), so default folders stay in one place however the app is started.
+ */
+function fromProjectRoot(dir: string): string {
+  const root = process.env.INIT_CWD;
+  return root && isAbsolute(root) ? join(root, dir) : dir;
+}
 
 /** True when the address (bare or `Name <addr>`) is on uw.edu or any of its subdomains. */
 export function isUwAddress(value: string): boolean {
@@ -22,7 +32,7 @@ export const baseEnvSchema = z.object({
 
   /** `dev-outbox` writes emails to a local folder; `mailgun` sends through the Mailgun HTTP API. */
   MAIL_TRANSPORT: z.enum(['dev-outbox', 'mailgun']).default('dev-outbox'),
-  DEV_OUTBOX_DIR: z.string().default('.dev-outbox'),
+  DEV_OUTBOX_DIR: z.string().default(() => fromProjectRoot('.dev-outbox')),
   /** Sender on the club's own (sub)domain, e.g. `Specialty Masters Club <news@mail.example.org>`. */
   MAIL_FROM: z.string().refine((v) => !isUwAddress(v), {
     message: 'must not be a uw.edu address (we cannot set SPF/DKIM for UW domains)',
@@ -74,7 +84,10 @@ export const baseEnvSchema = z.object({
 export const apiEnvSchema = baseEnvSchema.extend({
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   /** Uploaded images (team photos, posters). Use a persistent volume in production. */
-  UPLOAD_DIR: z.string().min(1).default('uploads'),
+  UPLOAD_DIR: z
+    .string()
+    .min(1)
+    .default(() => fromProjectRoot('uploads')),
 });
 
 export const workerEnvSchema = baseEnvSchema.extend({
