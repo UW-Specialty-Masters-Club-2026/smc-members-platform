@@ -12,12 +12,17 @@ export async function api<T = unknown>(
   path: string,
   init: { method?: string; body?: unknown } = {},
 ): Promise<ApiResult<T>> {
-  const res = await fetch(`/api${path}`, {
-    method: init.method ?? 'GET',
-    credentials: 'same-origin',
-    headers: init.body === undefined ? undefined : { 'Content-Type': 'application/json' },
-    body: init.body === undefined ? undefined : JSON.stringify(init.body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`/api${path}`, {
+      method: init.method ?? 'GET',
+      credentials: 'same-origin',
+      headers: init.body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: init.body === undefined ? undefined : JSON.stringify(init.body),
+    });
+  } catch {
+    return { ok: false, status: 0, data: null, error: 'request_failed' };
+  }
   const json = res.status === 204 ? null : await res.json().catch(() => null);
   return {
     ok: res.ok,
@@ -250,4 +255,30 @@ export function ptDateTime(iso: string): string {
     minute: '2-digit',
     second: '2-digit',
   })} PT`;
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  email: 'email',
+  firstName: 'first name',
+  lastName: 'last name',
+  newsOptIn: 'news preference',
+};
+
+/** What went wrong with a request, in words a member can act on. */
+export function describeError(
+  res: Pick<ApiResult<unknown>, 'status' | 'error' | 'fields'>,
+): string {
+  if (res.error === 'too_many_requests')
+    return 'Too many attempts. Please wait a few minutes and try again.';
+  if (res.error === 'bad_origin') {
+    return 'This page was opened from a different address than the site expects. Open the site from its usual address and try again.';
+  }
+  if (res.error === 'invalid_request' && res.fields?.length) {
+    const names = res.fields.map((f) => FIELD_LABELS[f] ?? f).join(', ');
+    return `Please check: ${names}.`;
+  }
+  if (res.status >= 500 || res.error === 'request_failed') {
+    return 'The server isn’t responding right now. Please try again in a minute.';
+  }
+  return 'Something went wrong. Please try again.';
 }

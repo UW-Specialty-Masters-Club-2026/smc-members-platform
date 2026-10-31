@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
-import { api } from '@/lib/api';
+import { api, describeError } from '@/lib/api';
 
 export default function LoginPage() {
   const [sent, setSent] = useState(false);
@@ -17,12 +17,7 @@ export default function LoginPage() {
     const res = await api('/auth/magic-link', { method: 'POST', body: { email } });
     setBusy(false);
     if (res.ok) setSent(true);
-    else
-      setError(
-        res.error === 'too_many_requests'
-          ? 'Too many attempts. Please wait a few minutes and try again.'
-          : 'Please enter a valid email address.',
-      );
+    else setError(describeError(res));
   }
 
   return (

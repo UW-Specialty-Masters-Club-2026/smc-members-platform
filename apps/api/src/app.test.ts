@@ -90,3 +90,39 @@ describe('logger', () => {
     expect(out).not.toContain('bob@uw.edu');
   });
 });
+
+describe('origin check', () => {
+  const app = (appEnv: 'development' | 'production', appBaseUrl: string) =>
+    createApp({
+      prisma: {} as PrismaClient,
+      logger: captureLogger().logger,
+      mailer: new MemoryMailer(),
+      now: () => new Date(),
+      config: {
+        appEnv,
+        appBaseUrl,
+        authRateLimitPerIp: 100,
+        linkSigningSecret: 'x'.repeat(32),
+        apiBaseUrl: 'http://localhost:4000',
+        mailFrom: 'SMC <news@mail.smc.example>',
+        mailReplyTo: 'smcommittee@uw.edu',
+        emailAllowlist: [],
+        digestLookaheadDays: 21,
+        digestLogoUrl: null,
+        mailgunWebhookSigningKey: null,
+      },
+    });
+  // Passing the origin check reaches body validation (400) without touching the database.
+  const post = (a: ReturnType<typeof app>, origin: string) =>
+    request(a).post('/auth/magic-link').set('Origin', origin).send({});
+
+  it('accepts 127.0.0.1 for a localhost site in development only', async () => {
+    const dev = app('development', 'http://localhost:3000');
+    expect((await post(dev, 'http://127.0.0.1:3000')).status).toBe(400);
+    expect((await post(dev, 'http://127.0.0.1:3001')).status).toBe(403);
+    expect((await post(dev, 'http://10.0.0.5:3000')).status).toBe(403);
+    const prod = app('production', 'https://smc.example');
+    expect((await post(prod, 'https://smc.example')).status).toBe(400);
+    expect((await post(prod, 'http://localhost:3000')).status).toBe(403);
+  });
+});

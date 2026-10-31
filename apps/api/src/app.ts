@@ -38,7 +38,7 @@ export function createApp(ctx: AppContext): Express {
   const browser = express.Router();
   browser.use(express.json({ limit: '100kb' }));
   browser.use(cookieParser());
-  browser.use(requireSameOrigin(ctx.config.appBaseUrl));
+  browser.use(requireSameOrigin(ctx.config.appBaseUrl, ctx.config.appEnv));
   browser.use(loadSession(ctx));
   browser.use('/auth', authRouter(ctx));
   browser.use('/me/registrations', myRegistrationsRouter(ctx));
