@@ -1,5 +1,12 @@
-import { generateToken, hashToken, normalizeEmail } from '@smc/core';
-import { recordAudit, type MagicLinkPurpose, type Member } from '@smc/db';
+import {
+  decoyHash,
+  generateToken,
+  hashPassword,
+  hashToken,
+  normalizeEmail,
+  verifyPassword,
+} from '@smc/core';
+import { recordAudit, type MagicLinkPurpose, type Member, type Prisma } from '@smc/db';
 import { renderMagicLinkEmail } from '@smc/email';
 import type { AppContext } from '../context';
 import { HttpError } from '../errors';
@@ -14,6 +21,7 @@ export interface SignupInput {
   firstName: string;
   lastName: string;
   newsOptIn: boolean;
+  password?: string;
 }
 
 /**
@@ -30,6 +38,8 @@ export async function signup(ctx: AppContext, runId: string, input: SignupInput)
   }
 
   const now = ctx.now();
+  // Hash before opening the transaction; scrypt is deliberately slow.
+  const passwordHash = input.password ? await hashPassword(input.password) : null;
   const member = await ctx.prisma.$transaction(async (tx) => {
     const created = await tx.member.create({
       data: {
@@ -38,6 +48,7 @@ export async function signup(ctx: AppContext, runId: string, input: SignupInput)
         lastName: input.lastName.trim(),
         newsOptIn: input.newsOptIn,
         newsOptInUpdatedAt: now,
+        ...(passwordHash && { passwordHash, passwordUpdatedAt: now }),
       },
     });
     await recordAudit(tx, {
@@ -191,26 +202,8 @@ export async function verifyMagicLink(
       });
     }
 
-    const sessionToken = generateToken();
-    const sessionExpiresAt = new Date(now.getTime() + SESSION_TTL_DAYS * 24 * 60 * 60_000);
-    const session = await tx.session.create({
-      data: {
-        memberId: member.id,
-        tokenHash: hashToken(sessionToken),
-        expiresAt: sessionExpiresAt,
-        createdAt: now,
-        lastSeenAt: now,
-      },
-    });
-    await recordAudit(tx, {
-      runId,
-      actorType: 'MEMBER',
-      actorId: member.id,
-      action: 'auth.login',
-      entityType: 'session',
-      entityId: session.id,
-      result: 'SUCCESS',
-      metadata: { purpose: link.purpose },
+    const { sessionToken, sessionExpiresAt } = await startSession(tx, runId, member.id, now, {
+      purpose: link.purpose,
     });
     return { kind: 'ok' as const, member, sessionToken, sessionExpiresAt };
   });
@@ -241,5 +234,141 @@ export async function logout(ctx: AppContext, runId: string, sessionId: string, 
     entityType: 'session',
     entityId: sessionId,
     result: 'SUCCESS',
+  });
+}
+
+/** Create a session and audit the sign-in. Returns the raw cookie value. */
+async function startSession(
+  tx: Prisma.TransactionClient,
+  runId: string,
+  memberId: string,
+  now: Date,
+  metadata: Record<string, unknown>,
+) {
+  const sessionToken = generateToken();
+  const sessionExpiresAt = new Date(now.getTime() + SESSION_TTL_DAYS * 24 * 60 * 60_000);
+  const session = await tx.session.create({
+    data: {
+      memberId,
+      tokenHash: hashToken(sessionToken),
+      expiresAt: sessionExpiresAt,
+      createdAt: now,
+      lastSeenAt: now,
+    },
+  });
+  await recordAudit(tx, {
+    runId,
+    actorType: 'MEMBER',
+    actorId: memberId,
+    action: 'auth.login',
+    entityType: 'session',
+    entityId: session.id,
+    result: 'SUCCESS',
+    metadata,
+  });
+  return { sessionToken, sessionExpiresAt };
+}
+
+// ─── Passwords ─────────────────────────────────────────────────────
+
+/** Failed password attempts per account allowed in one window before signing in is paused. */
+export const MAX_PASSWORD_FAILURES = 5;
+export const PASSWORD_LOCK_MINUTES = 15;
+
+/**
+ * Sign in with email and password. Every wrong combination gets the same answer (and takes
+ * about the same time), so the response never reveals which addresses have accounts.
+ */
+export async function passwordLogin(
+  ctx: AppContext,
+  runId: string,
+  rawEmail: string,
+  password: string,
+): Promise<VerifiedLogin> {
+  const now = ctx.now();
+  const member = await ctx.prisma.member.findUnique({ where: { email: normalizeEmail(rawEmail) } });
+  const audit = (reason: string, memberId?: string) =>
+    recordAudit(ctx.prisma, {
+      runId,
+      actorType: 'SYSTEM',
+      action: 'auth.password.failed',
+      entityType: memberId ? 'member' : undefined,
+      entityId: memberId,
+      result: 'FAILURE',
+      metadata: { reason },
+      at: now,
+    });
+
+  if (!member?.passwordHash) {
+    await verifyPassword(password, await decoyHash());
+    await audit(member ? 'no_password_set' : 'unknown_email', member?.id);
+    throw new HttpError(401, 'invalid_credentials');
+  }
+
+  const since = new Date(now.getTime() - PASSWORD_LOCK_MINUTES * 60_000);
+  const failures = await ctx.prisma.auditLog.count({
+    where: { action: 'auth.password.failed', entityId: member.id, createdAt: { gt: since } },
+  });
+  if (failures >= MAX_PASSWORD_FAILURES) {
+    await audit('locked', member.id);
+    throw new HttpError(429, 'too_many_attempts');
+  }
+
+  if (!(await verifyPassword(password, member.passwordHash))) {
+    await audit('wrong_password', member.id);
+    throw new HttpError(401, 'invalid_credentials');
+  }
+  if (member.status !== 'ACTIVE') {
+    await audit('inactive', member.id);
+    throw new HttpError(403, 'account_inactive');
+  }
+  if (!member.emailVerifiedAt) {
+    // Right password, unconfirmed address: send the confirmation link again.
+    await sendMagicLink(ctx, runId, member, 'SIGNUP');
+    throw new HttpError(403, 'email_not_verified');
+  }
+
+  const session = await ctx.prisma.$transaction((tx) =>
+    startSession(tx, runId, member.id, now, { method: 'password' }),
+  );
+  return { member, ...session };
+}
+
+/**
+ * Set or change the signed-in member's password. Changing an existing password needs the
+ * current one; other sessions are signed out.
+ */
+export async function setPassword(
+  ctx: AppContext,
+  runId: string,
+  auth: { memberId: string; sessionId: string },
+  input: { currentPassword?: string; newPassword: string },
+): Promise<void> {
+  const member = await ctx.prisma.member.findUniqueOrThrow({ where: { id: auth.memberId } });
+  if (member.passwordHash) {
+    const ok =
+      input.currentPassword && (await verifyPassword(input.currentPassword, member.passwordHash));
+    if (!ok) throw new HttpError(400, 'wrong_current_password');
+  }
+  const now = ctx.now();
+  const passwordHash = await hashPassword(input.newPassword);
+  await ctx.prisma.$transaction(async (tx) => {
+    await tx.member.update({
+      where: { id: member.id },
+      data: { passwordHash, passwordUpdatedAt: now },
+    });
+    await tx.session.updateMany({
+      where: { memberId: member.id, revokedAt: null, id: { not: auth.sessionId } },
+      data: { revokedAt: now },
+    });
+    await recordAudit(tx, {
+      runId,
+      actorType: 'MEMBER',
+      actorId: member.id,
+      action: member.passwordHash ? 'auth.password.changed' : 'auth.password.set',
+      entityType: 'member',
+      entityId: member.id,
+      result: 'SUCCESS',
+    });
   });
 }

@@ -10,6 +10,8 @@ export interface AuditEntry {
   entityId?: string;
   result: AuditResult;
   metadata?: Record<string, unknown>;
+  /** When it happened (defaults to the database clock). */
+  at?: Date;
 }
 
 type AuditWriter = Pick<PrismaClient, 'auditLog'> | Prisma.TransactionClient;
@@ -25,6 +27,7 @@ export async function recordAudit(db: AuditWriter, entry: AuditEntry): Promise<v
       entityType: entry.entityType ?? null,
       entityId: entry.entityId ?? null,
       result: entry.result,
+      ...(entry.at && { createdAt: entry.at }),
       metadata: entry.metadata
         ? (redactForLog(entry.metadata) as Prisma.InputJsonValue)
         : undefined,

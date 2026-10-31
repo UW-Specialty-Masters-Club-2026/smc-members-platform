@@ -5,7 +5,9 @@ import { magicToken, waitForEmail } from './db';
 export async function signIn(page: Page, email: string) {
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
-  await page.getByRole('button', { name: /sign-in link/i }).click();
+  // Switch from password to an emailed link, then send it.
+  await page.getByRole('button', { name: 'Email me a sign-in link' }).click();
+  await page.getByRole('button', { name: 'Email me a sign-in link' }).click();
   await expect(page.getByRole('status')).toContainText('sign-in link is on its way');
   const mail = await waitForEmail(email, /sign-in link/);
   await page.goto(`/auth/callback#token=${magicToken(mail)}`);

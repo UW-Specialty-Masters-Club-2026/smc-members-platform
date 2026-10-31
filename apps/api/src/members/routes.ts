@@ -1,8 +1,10 @@
+import { PASSWORD_MAX, PASSWORD_MIN } from '@smc/core';
 import { recordAudit, type Member } from '@smc/db';
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AppContext } from '../context';
 import { HttpError } from '../errors';
+import { setPassword } from '../auth/service';
 import { requireAuth } from '../middleware/access';
 
 const nameSchema = z.string().trim().min(1).max(100);
@@ -26,6 +28,7 @@ export function profileView(m: Member) {
     newsOptIn: m.newsOptIn,
     newsOptInUpdatedAt: m.newsOptInUpdatedAt,
     emailSuppressedReason: m.emailSuppressedReason,
+    hasPassword: m.passwordHash !== null,
   };
 }
 
@@ -82,6 +85,17 @@ export function meRouter(ctx: AppContext): Router {
     });
 
     res.json(profileView(updated));
+  });
+
+  router.put('/password', async (req, res) => {
+    const body = z
+      .strictObject({
+        currentPassword: z.string().max(PASSWORD_MAX).optional(),
+        newPassword: z.string().min(PASSWORD_MIN).max(PASSWORD_MAX),
+      })
+      .parse(req.body);
+    await setPassword(ctx, req.runId, req.auth!, body);
+    res.status(204).end();
   });
 
   return router;

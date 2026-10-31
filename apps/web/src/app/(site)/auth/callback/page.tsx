@@ -17,7 +17,10 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const match = /(?:^#|&)token=([A-Za-z0-9_-]+)/.exec(window.location.hash);
-    setToken(match?.[1] ?? null);
+    // A second run (React dev mode runs effects twice) finds the fragment already cleared;
+    // keep the token from the first run.
+    if (!match) return;
+    setToken(match[1]!);
     // Drop the token from the address bar and history.
     window.history.replaceState(null, '', window.location.pathname);
   }, []);

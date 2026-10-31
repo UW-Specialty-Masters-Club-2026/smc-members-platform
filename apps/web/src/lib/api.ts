@@ -44,6 +44,7 @@ export interface Profile {
   newsOptIn: boolean;
   newsOptInUpdatedAt: string | null;
   emailSuppressedReason: 'UNSUBSCRIBED' | 'COMPLAINED' | 'HARD_BOUNCE' | null;
+  hasPassword?: boolean;
 }
 
 export type Availability =

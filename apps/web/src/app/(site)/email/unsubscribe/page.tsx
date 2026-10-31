@@ -18,6 +18,11 @@ export default function UnsubscribePage() {
   useEffect(() => {
     const hash = window.location.hash;
     const t = /(?:^#|&)t=([A-Za-z0-9_.-]+)/.exec(hash)?.[1] ?? null;
+    if (!hash) {
+      // Either there never was a fragment, or a repeated effect run already consumed it.
+      setState((s) => (s === 'loading' ? 'missing' : s));
+      return;
+    }
     setToken(t);
     setState(t ? 'ready' : /^#(preview|test)$/.test(hash) ? 'preview' : 'missing');
     window.history.replaceState(null, '', window.location.pathname);

@@ -12,6 +12,10 @@ export default function SignupPage() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    if (form.get('password') !== form.get('passwordAgain')) {
+      setError('The two passwords don’t match.');
+      return;
+    }
     setBusy(true);
     setError(null);
     const res = await api('/auth/signup', {
@@ -21,6 +25,7 @@ export default function SignupPage() {
         firstName: String(form.get('firstName')),
         lastName: String(form.get('lastName')),
         newsOptIn: form.get('newsOptIn') === 'on',
+        password: String(form.get('password')),
       },
     });
     setBusy(false);
@@ -33,8 +38,8 @@ export default function SignupPage() {
       <h1 className="display">Join SMC</h1>
       {sent ? (
         <div className="notice" role="status">
-          Check your inbox. We sent a link to confirm your email and finish signing up. It expires
-          in 15 minutes.
+          Check your inbox. We sent a link to confirm your email. After that you can sign in with
+          your password. The link expires in 15 minutes.
         </div>
       ) : (
         <form className="card" onSubmit={onSubmit}>
@@ -55,6 +60,32 @@ export default function SignupPage() {
             Last name
             <input name="lastName" autoComplete="family-name" required maxLength={100} />
           </label>
+          <label className="field" style={{ marginBottom: 4 }}>
+            Password
+            <input
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={10}
+              maxLength={128}
+              aria-describedby="pw-help"
+            />
+          </label>
+          <p id="pw-help" className="muted" style={{ margin: '0 0 16px', fontSize: 13 }}>
+            At least 10 characters.
+          </p>
+          <label className="field">
+            Repeat password
+            <input
+              name="passwordAgain"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={10}
+              maxLength={128}
+            />
+          </label>
           <label className="check">
             <input type="checkbox" name="newsOptIn" />
             <span>
@@ -63,7 +94,7 @@ export default function SignupPage() {
             </span>
           </label>
           <button className="btn" type="submit" disabled={busy}>
-            {busy ? 'Sending…' : 'Email me a link'}
+            {busy ? 'Creating account…' : 'Create account'}
           </button>
           <p className="muted" style={{ marginBottom: 0 }}>
             Already a member? <Link href="/login">Sign in</Link>

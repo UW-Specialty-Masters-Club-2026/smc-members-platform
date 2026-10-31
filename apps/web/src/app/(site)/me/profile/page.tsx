@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { PasswordSettings } from '@/components/PasswordSettings';
 import { api, type EventView, type Profile } from '@/lib/api';
 
 const SUPPRESSION_NOTE: Record<NonNullable<Profile['emailSuppressedReason']>, string> = {
@@ -97,6 +98,13 @@ export default function ProfilePage() {
         <p role="status" className="muted" style={{ minHeight: 24, margin: 0 }}>
           {message}
         </p>
+
+        <div style={{ marginTop: 24, paddingTop: 8, borderTop: '1px solid #e6dcf5' }}>
+          <PasswordSettings
+            hasPassword={Boolean(profile.hasPassword)}
+            onSaved={() => setProfile({ ...profile, hasPassword: true })}
+          />
+        </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
           {profile.role !== 'MEMBER' && (

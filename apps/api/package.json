@@ -8,7 +8,8 @@
     "build": "tsup",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json",
-    "grant-admin": "tsx --env-file-if-exists=../../.env src/scripts/grant-admin.ts"
+    "grant-admin": "tsx --env-file-if-exists=../../.env src/scripts/grant-admin.ts",
+    "set-password": "tsx --env-file-if-exists=../../.env src/scripts/set-password.ts"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

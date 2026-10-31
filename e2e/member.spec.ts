@@ -35,8 +35,10 @@ test('a new member opts in at sign-up, registers for an event and manages news i
   await page.getByLabel('UW email').fill(NEW_MEMBER_EMAIL);
   await page.getByLabel('First name').fill('Nora');
   await page.getByLabel('Last name').fill('E2E');
+  await page.getByLabel('Password', { exact: true }).fill('nora-e2e-password');
+  await page.getByLabel('Repeat password').fill('nora-e2e-password');
   await page.getByLabel(/Send me extra news and invitations/).check();
-  await page.getByRole('button', { name: 'Email me a link' }).click();
+  await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page.getByRole('status')).toContainText('Check your inbox');
   const mail = await waitForEmail(NEW_MEMBER_EMAIL, /Confirm your email/);
   await page.goto(`/auth/callback#token=${magicToken(mail)}`);
@@ -63,6 +65,14 @@ test('a new member opts in at sign-up, registers for an event and manages news i
   await newsBox.check();
   await expect(page.getByRole('status')).toContainText('You’ll get news and invitations.');
   await expect(page.getByText('Alumni Coffee Chat')).toBeVisible(); // My events
+
+  // Sign out, then back in with the password chosen at sign-up.
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await page.waitForURL('**/login');
+  await page.getByLabel('Email').fill(NEW_MEMBER_EMAIL);
+  await page.getByLabel('Password').fill('nora-e2e-password');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.waitForURL('**/me/profile');
 });
 
 test('key pages fit a 390px phone without sideways scrolling', async ({ page }) => {

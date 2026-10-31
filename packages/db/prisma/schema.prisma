@@ -41,6 +41,10 @@ model Member {
 
   emailVerifiedAt DateTime? @map("email_verified_at")
 
+  /// scrypt hash; null for members who only use email sign-in links.
+  passwordHash      String?   @map("password_hash") @db.VarChar(255)
+  passwordUpdatedAt DateTime? @map("password_updated_at")
+
   /// "Send me extra news and invitations" — chosen at sign-up, editable in My profile.
   newsOptIn             Boolean                 @default(false) @map("news_opt_in")
   newsOptInUpdatedAt    DateTime?               @map("news_opt_in_updated_at")
