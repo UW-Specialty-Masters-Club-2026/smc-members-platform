@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { Anton, Montserrat } from 'next/font/google';
+import { Anton, Inter, Montserrat } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { SiteFooter } from '@/components/SiteFooter';
-import { SiteHeader } from '@/components/SiteHeader';
 import './globals.css';
 
 // Self-hosted at build time by next/font (no runtime request to Google).
@@ -17,6 +15,8 @@ const montserrat = Montserrat({
   variable: '--font-montserrat',
   display: 'swap',
 });
+// Admin workspace UI face.
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Specialty Masters Club',
@@ -27,12 +27,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${anton.variable} ${montserrat.variable}`}>
-      <body>
-        <SiteHeader />
-        {children}
-        <SiteFooter />
-      </body>
+    <html lang="en" className={`${anton.variable} ${montserrat.variable} ${inter.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

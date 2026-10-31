@@ -11,6 +11,7 @@ import { resetDatabase } from '@smc/db/testing';
 import { approveDigest, createDraft, weekKeyFor, type WorkflowDeps } from '@smc/digest';
 import { DevOutboxMailer } from '@smc/email';
 import { DateTime } from 'luxon';
+import { seedContent } from './seed-content';
 
 const env = parseEnv(workerEnvSchema);
 const logger = createLogger({ name: 'seed-demo' });
@@ -50,6 +51,8 @@ try {
     newsOptIn: false,
   });
   const olivia = await person('olivia.demo@uw.edu', 'Olivia', 'Park', { role: 'ORGANIZER' });
+  // The club's real website content (team, articles, newsletters, skills, site copy).
+  await seedContent(db);
   const members = [
     await person('mia.demo@uw.edu', 'Mia', 'Chen'),
     await person('leo.demo@gmail.com', 'Leo', 'Garcia'),

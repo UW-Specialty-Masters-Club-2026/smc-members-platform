@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { AdminDelete } from '@/components/AdminDelete';
 import { NewsForm } from '@/components/NewsForm';
 import { api, type NewsView } from '@/lib/api';
 
@@ -113,6 +114,12 @@ export default function AdminNewsPostPage() {
           }
           return res;
         }}
+      />
+      <AdminDelete
+        endpoint={`/admin/news/${post.id}`}
+        what="post"
+        warning="Removes the post from the website. Digests that already went out keep their copy. To hide it but keep the record, archive it instead."
+        backTo="/admin/news"
       />
     </main>
   );

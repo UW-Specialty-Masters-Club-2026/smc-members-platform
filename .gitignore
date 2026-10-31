@@ -39,3 +39,7 @@ next-env.d.ts
 .e2e-outbox/
 playwright-report/
 test-results/
+
+# test uploads
+.test-uploads/
+uploads/

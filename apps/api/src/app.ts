@@ -2,6 +2,9 @@ import cookieParser from 'cookie-parser';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { adminAuditRouter } from './admin/audit';
+import { adminStatsRouter } from './admin/stats';
+import { adminContentRouter, publicContentRouter } from './content/routes';
+import { adminUploadsRouter, uploadsStatic } from './content/uploads';
 import { adminDigestsRouter } from './admin/digests';
 import { adminEventsRouter } from './admin/events';
 import { adminMembersRouter } from './admin/members';
@@ -30,6 +33,8 @@ export function createApp(ctx: AppContext): Express {
     res.json({ status: 'ok' });
   });
 
+  app.use('/uploads', uploadsStatic(ctx));
+
   // Machine-to-machine endpoints: no cookies or Origin; authenticated by signatures/tokens.
   app.use('/webhooks/mailgun', mailgunWebhookRouter(ctx));
   app.use('/email/unsubscribe/one-click', oneClickUnsubscribeRouter(ctx));
@@ -52,6 +57,10 @@ export function createApp(ctx: AppContext): Express {
   browser.use('/admin/news', adminNewsRouter(ctx));
   browser.use('/admin/digests', adminDigestsRouter(ctx));
   browser.use('/admin/audit', adminAuditRouter(ctx));
+  browser.use('/admin/stats', adminStatsRouter(ctx));
+  browser.use('/admin/uploads', adminUploadsRouter(ctx));
+  browser.use('/admin/content', adminContentRouter(ctx));
+  browser.use('/content', publicContentRouter(ctx));
   browser.use('/digest', publicDigestRouter(ctx));
   browser.use('/email/unsubscribe', unsubscribePageRouter(ctx));
   browser.use('/staff/checkin', staffCheckInRouter(ctx));

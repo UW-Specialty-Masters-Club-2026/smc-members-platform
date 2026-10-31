@@ -120,10 +120,14 @@ model Event {
   details String?     @db.Text
   status  EventStatus @default(DRAFT)
 
-  startsAt DateTime  @map("starts_at")
-  endsAt   DateTime? @map("ends_at")
+  startsAt    DateTime  @map("starts_at")
+  endsAt      DateTime? @map("ends_at")
   /// e.g. "PACCAR Hall, Room 192 · UW Seattle"
-  location String    @db.VarChar(200)
+  location    String    @db.VarChar(200)
+  /// Poster or photo shown on the event page.
+  imageUrl    String?   @map("image_url") @db.VarChar(500)
+  /// Optional outside page (e.g. Luma) for details or registration.
+  externalUrl String?   @map("external_url") @db.VarChar(500)
 
   /// null = unlimited seats.
   capacity             Int?
@@ -557,6 +561,104 @@ model Job {
 
   @@index([status, runAt])
   @@map("jobs")
+}
+
+// ─── Public site content (managed in the admin workspace) ───────────
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(120)
+  role        String   @db.VarChar(160)
+  /// leads | strategy | alumni | tech | casecomp | operations
+  departments Json
+  major       String?  @db.VarChar(160)
+  linkedinUrl String?  @map("linkedin_url") @db.VarChar(500)
+  websiteUrl  String?  @map("website_url") @db.VarChar(500)
+  imageUrl    String?  @map("image_url") @db.VarChar(500)
+  sortOrder   Int      @default(0) @map("sort_order")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, sortOrder])
+  @@map("team_members")
+}
+
+model Article {
+  id          String        @id @default(cuid())
+  slug        String        @unique @db.VarChar(160)
+  title       String        @db.VarChar(200)
+  subtitle    String        @db.VarChar(400)
+  category    String        @db.VarChar(60)
+  author      String        @db.VarChar(300)
+  /// Markdown; rendered to sanitised HTML by the API.
+  body        String        @db.MediumText
+  imageUrl    String?       @map("image_url") @db.VarChar(500)
+  imageAlt    String?       @map("image_alt") @db.VarChar(300)
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?     @map("published_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt])
+  @@map("articles")
+}
+
+model Newsletter {
+  id         String        @id @default(cuid())
+  slug       String        @unique @db.VarChar(80)
+  volume     String        @db.VarChar(40)
+  title      String        @db.VarChar(200)
+  summary    String        @db.VarChar(500)
+  /// string[]
+  highlights Json
+  pdfUrl     String        @map("pdf_url") @db.VarChar(500)
+  issuedAt   DateTime      @map("issued_at")
+  status     ContentStatus @default(PUBLISHED)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@index([status, issuedAt])
+  @@map("newsletters")
+}
+
+enum SkillGroup {
+  CAREER
+  STARTER
+  BUILT_IN
+}
+
+model SkillItem {
+  id          String     @id @default(cuid())
+  group       SkillGroup
+  name        String     @db.VarChar(120)
+  description String     @db.VarChar(500)
+  prompt      String?    @db.VarChar(300)
+  downloadUrl String?    @map("download_url") @db.VarChar(500)
+  linkUrl     String?    @map("link_url") @db.VarChar(500)
+  sortOrder   Int        @default(0) @map("sort_order")
+  isPublished Boolean    @default(true) @map("is_published")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([group, sortOrder])
+  @@map("skill_items")
+}
+
+/// Editable site copy (about, pillars, contact, join page), one JSON value per key.
+model SiteSetting {
+  key         String   @id @db.VarChar(60)
+  value       Json
+  updatedById String?  @map("updated_by_id") @db.VarChar(64)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
 }
 
 // ─── Run + audit logs ──────────────────────────────────────────────

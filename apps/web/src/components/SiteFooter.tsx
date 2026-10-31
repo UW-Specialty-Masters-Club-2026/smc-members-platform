@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { SITE } from '@/content';
+import { getSettings } from '@/lib/server-api';
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const { contact } = await getSettings();
+  const address = contact?.address ?? SITE.address;
+  const email = contact?.email ?? SITE.email;
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
@@ -29,7 +33,7 @@ export function SiteFooter() {
         <div>
           <h2>Address</h2>
           <address>
-            {SITE.address.map((line) => (
+            {address.map((line) => (
               <span key={line}>
                 {line}
                 <br />
@@ -41,17 +45,25 @@ export function SiteFooter() {
           <h2>Follow us</h2>
           <ul>
             <li>
-              <a href={SITE.linkedin.url} target="_blank" rel="noopener noreferrer">
+              <a
+                href={contact?.linkedinUrl ?? SITE.linkedin.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 LinkedIn
               </a>
             </li>
             <li>
-              <a href={SITE.instagram.url} target="_blank" rel="noopener noreferrer">
-                Instagram {SITE.instagram.label}
+              <a
+                href={contact?.instagramUrl ?? SITE.instagram.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram {contact?.instagramLabel ?? SITE.instagram.label}
               </a>
             </li>
             <li>
-              <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+              <a href={`mailto:${email}`}>{email}</a>
             </li>
           </ul>
         </div>

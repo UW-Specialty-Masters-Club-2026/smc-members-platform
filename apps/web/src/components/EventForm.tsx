@@ -2,6 +2,7 @@
 
 import { toPtLocalInput } from '@smc/core/time';
 import { useState, type FormEvent } from 'react';
+import { ImageField } from '@/components/ImageField';
 import type { EventView } from '@/lib/api';
 
 export interface EventFormBody {
@@ -15,6 +16,8 @@ export interface EventFormBody {
   waitlistEnabled: boolean;
   registrationOpen: boolean;
   registrationClosesAtPt: string | null;
+  imageUrl: string | null;
+  externalUrl: string | null;
 }
 
 const ERRORS: Record<string, string> = {
@@ -63,6 +66,8 @@ export function EventForm({
       waitlistEnabled: f.get('waitlistEnabled') === 'on',
       registrationOpen: f.get('registrationOpen') === 'on',
       registrationClosesAtPt: text('registrationClosesAtPt') || null,
+      imageUrl: text('imageUrl') || null,
+      externalUrl: text('externalUrl') || null,
     });
     setBusy(false);
     setBadFields(res.fields ?? []);
@@ -165,6 +170,21 @@ export function EventForm({
             />
           </label>
         </div>
+        <ImageField
+          name="imageUrl"
+          label="Poster or photo (optional)"
+          defaultValue={initial?.imageUrl}
+        />
+        <label className="field">
+          Outside event page (optional, e.g. Luma)
+          <input
+            type="url"
+            name="externalUrl"
+            placeholder="https://"
+            defaultValue={initial?.externalUrl ?? ''}
+            aria-invalid={invalid('externalUrl')}
+          />
+        </label>
         <label className="check">
           <input
             type="checkbox"

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { AdminDelete } from '@/components/AdminDelete';
 import { EventForm } from '@/components/EventForm';
 import { api, type EventView, type RegistrationStatus } from '@/lib/api';
 
@@ -207,6 +208,12 @@ export default function AdminEventPage() {
         </table>
       </div>
       {roster.length === 0 && <p className="muted">No registrations yet.</p>}
+      <AdminDelete
+        endpoint={`/admin/events/${event.id}`}
+        what="event"
+        warning="Removes the event with its registrations, check-ins and survey answers. Organizers can delete drafts only. To keep the record, cancel or complete it instead."
+        backTo="/admin/events"
+      />
     </main>
   );
 }

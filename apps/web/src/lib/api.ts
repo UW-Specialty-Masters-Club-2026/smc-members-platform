@@ -68,6 +68,8 @@ export interface EventView {
   endsAt: string | null;
   when: string;
   location: string;
+  imageUrl?: string | null;
+  externalUrl?: string | null;
   capacity: number | null;
   waitlistEnabled: boolean;
   registrationOpen: boolean;

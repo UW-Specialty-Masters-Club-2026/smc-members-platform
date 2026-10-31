@@ -45,6 +45,8 @@ export function eventView(
     endsAt: event.endsAt,
     when: formatPtRange(event.startsAt, event.endsAt),
     location: event.location,
+    imageUrl: event.imageUrl,
+    externalUrl: event.externalUrl,
     capacity: event.capacity,
     waitlistEnabled: event.waitlistEnabled,
     registrationOpen: event.registrationOpen,
@@ -234,6 +236,8 @@ export interface EventInput {
   waitlistEnabled: boolean;
   registrationOpen: boolean;
   registrationClosesAt: Date | null;
+  imageUrl?: string | null;
+  externalUrl?: string | null;
 }
 
 export interface Staff {

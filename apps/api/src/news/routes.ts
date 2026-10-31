@@ -1,3 +1,4 @@
+import { recordAudit } from '@smc/db';
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AppContext } from '../context';
@@ -118,6 +119,26 @@ export function adminNewsRouter(ctx: AppContext): Router {
       res.json(newsView(post, ctx.config.appBaseUrl));
     });
   }
+
+  router.delete('/:id', async (req, res) => {
+    const id = String(req.params.id);
+    const post = await ctx.prisma.newsPost.findUnique({ where: { id } });
+    if (!post) throw new HttpError(404, 'news_not_found');
+    await ctx.prisma.$transaction(async (tx) => {
+      await tx.newsPost.delete({ where: { id } });
+      await recordAudit(tx, {
+        runId: req.runId,
+        actorType: req.auth!.role === 'ADMIN' ? 'ADMIN' : 'MEMBER',
+        actorId: req.auth!.memberId,
+        action: 'news.deleted',
+        entityType: 'news_post',
+        entityId: id,
+        result: 'SUCCESS',
+        metadata: { title: post.title, status: post.status },
+      });
+    });
+    res.status(204).end();
+  });
 
   return router;
 }

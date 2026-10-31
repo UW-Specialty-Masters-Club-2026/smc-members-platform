@@ -59,14 +59,9 @@ export function SiteHeader() {
           </ul>
           <ul className="site-menu site-menu--account">
             {staff && (
-              <>
-                <li>
-                  <Link href="/admin/digests">Digest</Link>
-                </li>
-                <li>
-                  <Link href="/admin/events">Manage events</Link>
-                </li>
-              </>
+              <li>
+                <Link href="/admin">Admin</Link>
+              </li>
             )}
             {me ? (
               <li>

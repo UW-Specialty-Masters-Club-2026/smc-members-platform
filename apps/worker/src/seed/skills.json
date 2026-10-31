@@ -1,0 +1,113 @@
+[
+  {
+    "group": "CAREER",
+    "name": "Resume Tailor",
+    "description": "Matches your resume to a job posting: fit table, before/after bullet rewrites, and an ATS format check.",
+    "prompt": "Tailor my resume to this job.",
+    "downloadUrl": "https://raw.githubusercontent.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/main/downloads/resume-tailor.zip",
+    "linkUrl": "https://github.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/blob/main/skills/resume-tailor/SKILL.md",
+    "sortOrder": 0
+  },
+  {
+    "group": "CAREER",
+    "name": "Cover Letter Writer",
+    "description": "A specific 250–350 word letter built from your two strongest stories, without the generic phrases.",
+    "prompt": "Write a cover letter for this job using my resume.",
+    "downloadUrl": "https://raw.githubusercontent.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/main/downloads/cover-letter-writer.zip",
+    "linkUrl": "https://github.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/blob/main/skills/cover-letter-writer/SKILL.md",
+    "sortOrder": 1
+  },
+  {
+    "group": "CAREER",
+    "name": "Interview Prep Coach",
+    "description": "Likely questions, a STAR story bank, and mock interviews one question at a time with feedback.",
+    "prompt": "Run a mock behavioral interview for this role.",
+    "downloadUrl": "https://raw.githubusercontent.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/main/downloads/interview-prep-coach.zip",
+    "linkUrl": "https://github.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/blob/main/skills/interview-prep-coach/SKILL.md",
+    "sortOrder": 2
+  },
+  {
+    "group": "CAREER",
+    "name": "LinkedIn Optimizer",
+    "description": "Headline options, About section, and experience bullets rewritten for your target role.",
+    "prompt": "Improve my LinkedIn profile for product management roles.",
+    "downloadUrl": "https://raw.githubusercontent.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/main/downloads/linkedin-optimizer.zip",
+    "linkUrl": "https://github.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/blob/main/skills/linkedin-optimizer/SKILL.md",
+    "sortOrder": 3
+  },
+  {
+    "group": "CAREER",
+    "name": "Networking Outreach",
+    "description": "Connection notes, coffee-chat requests, referral asks, and follow-ups people actually answer.",
+    "prompt": "Draft a coffee-chat request to a PM at Microsoft.",
+    "downloadUrl": "https://raw.githubusercontent.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/main/downloads/networking-outreach.zip",
+    "linkUrl": "https://github.com/UW-Specialty-Masters-Club-2026/uw-foster-smc-claude-skills/blob/main/skills/networking-outreach/SKILL.md",
+    "sortOrder": 4
+  },
+  {
+    "group": "STARTER",
+    "name": "Skill Creator",
+    "description": "Turn something you do often (case prep, meeting notes, study guides) into your own skill.",
+    "linkUrl": "https://github.com/anthropics/skills/tree/main/skills/skill-creator",
+    "sortOrder": 0
+  },
+  {
+    "group": "STARTER",
+    "name": "Frontend Design",
+    "description": "Better-looking web pages and app prototypes.",
+    "linkUrl": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+    "sortOrder": 1
+  },
+  {
+    "group": "STARTER",
+    "name": "Internal Comms",
+    "description": "Status updates, newsletters, and team announcements.",
+    "linkUrl": "https://github.com/anthropics/skills/tree/main/skills/internal-comms",
+    "sortOrder": 2
+  },
+  {
+    "group": "STARTER",
+    "name": "Brand Guidelines",
+    "description": "Keep documents and visuals on-brand.",
+    "linkUrl": "https://github.com/anthropics/skills/tree/main/skills/brand-guidelines",
+    "sortOrder": 3
+  },
+  {
+    "group": "STARTER",
+    "name": "Canvas Design",
+    "description": "Posters and visual designs.",
+    "linkUrl": "https://github.com/anthropics/skills/tree/main/skills/canvas-design",
+    "sortOrder": 4
+  },
+  {
+    "group": "STARTER",
+    "name": "Algorithmic Art",
+    "description": "Generative art with code.",
+    "linkUrl": "https://github.com/anthropics/skills/tree/main/skills/algorithmic-art",
+    "sortOrder": 5
+  },
+  {
+    "group": "BUILT_IN",
+    "name": "Word",
+    "description": "Create and edit .docx documents.",
+    "sortOrder": 0
+  },
+  {
+    "group": "BUILT_IN",
+    "name": "PowerPoint",
+    "description": "Create slide decks.",
+    "sortOrder": 1
+  },
+  {
+    "group": "BUILT_IN",
+    "name": "Excel",
+    "description": "Build spreadsheets with formulas and charts.",
+    "sortOrder": 2
+  },
+  {
+    "group": "BUILT_IN",
+    "name": "PDF",
+    "description": "Create, read, and fill PDFs.",
+    "sortOrder": 3
+  }
+]

@@ -21,6 +21,8 @@ export interface AppConfig {
   digestLogoUrl: string | null;
   /** null until Mailgun webhooks are configured; the webhook endpoint then answers 503. */
   mailgunWebhookSigningKey: string | null;
+  /** Where uploaded images are stored (served at /uploads). */
+  uploadDir: string;
 }
 
 /** Everything a request handler needs, injected so tests can swap the clock and mailer. */

@@ -21,7 +21,7 @@ staging before anything reaches real members.
 | Web (Next.js) | `npx next start` in `apps/web`   | Proxies `/api/*` to the API (`API_BASE_URL` at build time).                                  |
 | Worker        | `node apps/worker/dist/index.js` | Long-running. Schedules in `America/Los_Angeles`; polls the MySQL job queue. Not serverless. |
 
-Build: `npm ci && npm run build`. Migrate (with approval): `npm run migrate:deploy -w @smc/db`.
+Build: `npm ci && npm run build` (set `API_BASE_URL` at build time; the web app's /api proxy is fixed then). Migrate (with approval): `npm run migrate:deploy -w @smc/db`, then load the website content once: `npm run seed:content -w @smc/worker` (fills only empty tables; rerun after `grant-admin` to add past events).
 Deploy order: migrate → API → worker → web.
 
 ## 2. Environment
@@ -42,6 +42,7 @@ Deploy order: migrate → API → worker → web.
 | `EMAIL_ALLOWLIST`               | API, worker | the testers’ exact addresses, comma-separated                       | ignored                                                                             |
 | `LINK_SIGNING_SECRET`           | API, worker | `openssl rand -base64 48` (different per environment)               | same, kept stable (rotating it invalidates unsubscribe links and check-in QR codes) |
 | `DIGEST_EVENT_LOOKAHEAD_DAYS`   | API, worker | `21`                                                                | `21`                                                                                |
+| `UPLOAD_DIR`                    | API         | persistent volume path for uploaded photos and posters              | same                                                                                |
 | `DIGEST_LOGO_URL`               | API, worker | hosted PNG (https) once the logo is supplied                        | same                                                                                |
 
 The API key must be able to **send** and **read events** (events are used to settle sends whose

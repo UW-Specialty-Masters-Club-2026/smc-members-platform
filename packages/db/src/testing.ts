@@ -2,6 +2,11 @@ import type { PrismaClient } from './generated/prisma/client';
 
 /** Every table, children before parents, so rows can be deleted without disabling FKs. */
 const TABLES = [
+  'site_settings',
+  'skill_items',
+  'newsletters',
+  'articles',
+  'team_members',
   'jobs',
   'mailgun_webhook_events',
   'digest_deliveries',

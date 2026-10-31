@@ -10,6 +10,7 @@ import { SESSION_COOKIE } from '../middleware/access';
 export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 export const hasTestDb = Boolean(TEST_DATABASE_URL);
 export const WEB_ORIGIN = 'http://localhost:3000';
+export const TEST_UPLOAD_DIR = '.test-uploads';
 export const TEST_WEBHOOK_KEY = 'whsec-test-0123456789abcdef';
 export const TEST_LINK_SECRET = 'test-link-signing-secret-0123456789abcdef';
 
@@ -55,6 +56,7 @@ export function createHarness(): TestHarness {
       digestLookaheadDays: 21,
       digestLogoUrl: null,
       mailgunWebhookSigningKey: TEST_WEBHOOK_KEY,
+      uploadDir: TEST_UPLOAD_DIR,
     },
   };
 

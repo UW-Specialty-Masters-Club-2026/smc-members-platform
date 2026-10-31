@@ -73,6 +73,8 @@ export const baseEnvSchema = z.object({
 
 export const apiEnvSchema = baseEnvSchema.extend({
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  /** Uploaded images (team photos, posters). Use a persistent volume in production. */
+  UPLOAD_DIR: z.string().min(1).default('uploads'),
 });
 
 export const workerEnvSchema = baseEnvSchema.extend({

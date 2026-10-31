@@ -36,6 +36,7 @@ function appWithoutDb() {
       digestLookaheadDays: 21,
       digestLogoUrl: null,
       mailgunWebhookSigningKey: null,
+      uploadDir: '.test-uploads',
     },
   });
 }
@@ -110,6 +111,7 @@ describe('origin check', () => {
         digestLookaheadDays: 21,
         digestLogoUrl: null,
         mailgunWebhookSigningKey: null,
+        uploadDir: '.test-uploads',
       },
     });
   // Passing the origin check reaches body validation (400) without touching the database.

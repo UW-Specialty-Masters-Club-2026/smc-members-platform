@@ -1,4 +1,5 @@
 import { InvalidLocalTimeError, parsePtLocal } from '@smc/core';
+import { recordAudit } from '@smc/db';
 import { Router } from 'express';
 import { z } from 'zod';
 import { checkIn, undoCheckIn } from '../attendance/service';
@@ -13,6 +14,7 @@ import {
   type EventInput,
   type Staff,
 } from '../events/service';
+import { linkOrPath } from '../content/routes';
 import { requireRole } from '../middleware/access';
 
 /** Pacific wall-clock input ("2026-10-28T18:00") → UTC instant. */
@@ -42,6 +44,8 @@ const fields = {
   waitlistEnabled: z.boolean(),
   registrationOpen: z.boolean(),
   registrationClosesAtPt: ptTime.nullable(),
+  imageUrl: linkOrPath.nullable(),
+  externalUrl: linkOrPath.nullable(),
 };
 
 const createBody = z.strictObject({
@@ -52,6 +56,8 @@ const createBody = z.strictObject({
   waitlistEnabled: fields.waitlistEnabled.default(true),
   registrationOpen: fields.registrationOpen.default(true),
   registrationClosesAtPt: fields.registrationClosesAtPt.default(null),
+  imageUrl: fields.imageUrl.default(null),
+  externalUrl: fields.externalUrl.default(null),
 });
 const updateBody = z.strictObject(fields).partial();
 
@@ -166,6 +172,33 @@ export function adminEventsRouter(ctx: AppContext): Router {
     const found = await ctx.prisma.registration.count({ where: { id: registrationId, eventId } });
     if (!found) throw new HttpError(404, 'registration_not_found');
   }
+
+  /**
+   * Delete an event with its registrations, check-ins and survey. Organizers may delete
+   * drafts only; admins may delete any event.
+   */
+  router.delete('/:id', async (req, res) => {
+    const id = String(req.params.id);
+    const event = await ctx.prisma.event.findUnique({ where: { id } });
+    if (!event) throw new HttpError(404, 'event_not_found');
+    if (event.status !== 'DRAFT' && req.auth!.role !== 'ADMIN')
+      throw new HttpError(403, 'admins_only');
+    const registrations = await ctx.prisma.registration.count({ where: { eventId: id } });
+    await ctx.prisma.$transaction(async (tx) => {
+      await tx.event.delete({ where: { id } });
+      await recordAudit(tx, {
+        runId: req.runId,
+        actorType: req.auth!.role === 'ADMIN' ? 'ADMIN' : 'MEMBER',
+        actorId: req.auth!.memberId,
+        action: 'event.deleted',
+        entityType: 'event',
+        entityId: id,
+        result: 'SUCCESS',
+        metadata: { title: event.title, status: event.status, registrations },
+      });
+    });
+    res.status(204).end();
+  });
 
   return router;
 }
