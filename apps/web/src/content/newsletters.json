@@ -1,0 +1,44 @@
+[
+  {
+    "slug": "vol-3",
+    "volume": "Vol. 3",
+    "title": "Specialty Masters Club Newsletter",
+    "date": "2026-09-30",
+    "summary": "The latest edition covering club updates, industry insights, and student stories.",
+    "highlights": [
+      "Latest Industry Trends & Insights",
+      "Club Updates & Highlights",
+      "Student Spotlights",
+      "Upcoming Events & Opportunities"
+    ],
+    "pdfUrl": "https://sites.uw.edu/smcommittee/files/2026/09/Specialty_Masters_Club_Newsletter_VOL_3.pdf"
+  },
+  {
+    "slug": "vol-2",
+    "volume": "Vol. 2",
+    "title": "Specialty Masters Club Newsletter",
+    "date": "2026-09-30",
+    "summary": "Signals, Not Noise — What skills and tools are actually hiring-relevant in 2026.",
+    "highlights": [
+      "Technology Landscape & Emerging Trends",
+      "Case Competitions: Strategy & Preparation",
+      "Workshop #1: AI Automation Insights",
+      "Student Opinion Page"
+    ],
+    "pdfUrl": "https://sites.uw.edu/smcommittee/files/2026/09/Specialty_Masters_Club_Newsletter_VOL_2.pdf"
+  },
+  {
+    "slug": "vol-1",
+    "volume": "Vol. 1",
+    "title": "Specialty Masters Club Newsletter",
+    "date": "2026-09-30",
+    "summary": "How Specialized Masters students are shaping the future of work.",
+    "highlights": [
+      "Technology Landscape & Emerging Trends",
+      "Case Competitions: Strategy & Preparation",
+      "Student Opinion Page",
+      "About the Specialty Masters Club"
+    ],
+    "pdfUrl": "https://sites.uw.edu/smcommittee/files/2026/09/Specialty_Masters_Club_Newsletter_VOL_1.pdf"
+  }
+]

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { EventFacts } from '@/components/EventFacts';
+import { PAST_EVENTS } from '@/content';
 import { api, type EventView } from '@/lib/api';
 
 export default function EventsPage() {
@@ -14,7 +15,8 @@ export default function EventsPage() {
 
   return (
     <main className="page">
-      <h1 className="display">Upcoming events</h1>
+      <h1 className="display">Events</h1>
+      <h2 className="section-title">Upcoming</h2>
       {events === null ? (
         <p className="muted">Loading…</p>
       ) : events.length === 0 ? (
@@ -44,6 +46,40 @@ export default function EventsPage() {
           ))}
         </ol>
       )}
+
+      <h2 className="section-title" style={{ marginTop: 48 }}>
+        Past events
+      </h2>
+      <ul className="card-grid">
+        {PAST_EVENTS.map((e) => (
+          <li key={e.slug} className="card past-event">
+            {e.image && <img src={e.image} alt={e.imageAlt} loading="lazy" />}
+            <h3 className="card__title">{e.title}</h3>
+            <p className="muted">
+              {new Date(e.startAt).toLocaleString('en-US', {
+                timeZone: 'America/Los_Angeles',
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
+              –
+              {new Date(e.endAt).toLocaleTimeString('en-US', {
+                timeZone: 'America/Los_Angeles',
+                hour: 'numeric',
+                minute: '2-digit',
+              })}{' '}
+              PT
+            </p>
+            {e.registerUrl && (
+              <a href={e.registerUrl} target="_blank" rel="noopener noreferrer">
+                Event page ↗
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }

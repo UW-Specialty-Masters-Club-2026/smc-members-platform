@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Anton, Montserrat } from 'next/font/google';
 import type { ReactNode } from 'react';
+import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import './globals.css';
 
@@ -19,7 +20,9 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: 'Specialty Masters Club',
-  description: 'Members and events for UW Foster Specialty Master’s students',
+  description:
+    'Empowering MSBA, MSIS, MSCM & Specialty Master’s Students at UW Foster School of Business.',
+  icons: { icon: '/content/2026-09-smc-logo.png' },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -28,6 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <SiteHeader />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

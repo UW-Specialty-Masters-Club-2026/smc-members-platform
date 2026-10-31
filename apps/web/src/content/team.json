@@ -1,0 +1,145 @@
+[
+  {
+    "slug": "professor-leonard-boussioux",
+    "name": "Léonard Boussioux",
+    "role": "Academic Advisor",
+    "departments": ["operations"],
+    "major": "Information Systems & Operations Management",
+    "linkedin": null,
+    "website": "https://boussioux.com/press",
+    "isHead": true,
+    "image": "/content/2026-10-professor_leonard-1.png"
+  },
+  {
+    "slug": "kaylee-goulding",
+    "name": "Kaylee Goulding",
+    "role": "VP / Secretary, Marketing & Communications",
+    "departments": ["leads"],
+    "major": "MSBA",
+    "linkedin": "https://www.linkedin.com/in/kaylee-goulding",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-kaylee.jpg"
+  },
+  {
+    "slug": "sai-saranya-kannan",
+    "name": "Sai Saranya Kannan",
+    "role": "President",
+    "departments": ["leads"],
+    "major": "MSBA",
+    "linkedin": "https://www.linkedin.com/in/saisaranyakannan",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-saranya.jpg"
+  },
+  {
+    "slug": "akshaya-jonnalagadda",
+    "name": "Akshaya Jonnalagadda",
+    "role": "Strategy: AI & Tech and Alumni & Relations",
+    "departments": ["strategy", "tech", "alumni"],
+    "major": "MSIS",
+    "linkedin": "https://www.linkedin.com/in/akshaya-jonnalagadda-00a30615a",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-akshaya.jpg"
+  },
+  {
+    "slug": "savleen-kaur",
+    "name": "Savleen Kaur",
+    "role": "Strategy: Operations & Case Competitions",
+    "departments": ["strategy", "casecomp", "operations"],
+    "major": "MSBA",
+    "linkedin": "https://www.linkedin.com/in/savleenkaurmsba",
+    "website": null,
+    "isHead": false,
+    "image": "/content/2026-09-savleen.jpeg"
+  },
+  {
+    "slug": "vy-doan",
+    "name": "Vy Doan",
+    "role": "Marketing & Communications",
+    "departments": ["strategy"],
+    "major": "MSBA",
+    "linkedin": "https://www.linkedin.com/in/vydoan10/",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-vy.jpg"
+  },
+  {
+    "slug": "divya-rawal",
+    "name": "Divya",
+    "role": "Head, Alumni",
+    "departments": ["alumni"],
+    "major": "MSIS",
+    "linkedin": "https://www.linkedin.com/in/divya-rawal-pd/",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-divya.jpeg"
+  },
+  {
+    "slug": "lalitha-pammi",
+    "name": "Lalitha Pammi",
+    "role": "Head, Alumni",
+    "departments": ["alumni"],
+    "major": "MSIS",
+    "linkedin": "https://www.linkedin.com/in/lalitha-pammi",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-lalitha.jpg"
+  },
+  {
+    "slug": "emerson-liu",
+    "name": "Emerson Liu",
+    "role": "Head, AI & Tech",
+    "departments": ["tech"],
+    "major": "MSIS",
+    "linkedin": "https://www.linkedin.com/in/emerson-liu-74a184352/",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-emerson.jpg"
+  },
+  {
+    "slug": "angela-tsao",
+    "name": "Angela (Pin-Cheng) Tsao",
+    "role": "Head, Case Competitions & Career",
+    "departments": ["casecomp"],
+    "major": "MSIS",
+    "linkedin": "https://www.linkedin.com/in/angela-tsao-903155353",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-angela.jpeg"
+  },
+  {
+    "slug": "raeann-liu",
+    "name": "Raeann Liu",
+    "role": "Head, Case Competitions & Career",
+    "departments": ["casecomp"],
+    "major": "MSCM",
+    "linkedin": "https://www.linkedin.com/in/raeann-liu/",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-raeann.jpg"
+  },
+  {
+    "slug": "alyssa-wang",
+    "name": "Alyssa Wang",
+    "role": "Head, Operations",
+    "departments": ["operations"],
+    "major": "MSBA",
+    "linkedin": "https://www.linkedin.com/in/alyssaw-ruoyu",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-alyssa.jpg"
+  },
+  {
+    "slug": "elena-quan",
+    "name": "Elena Quan",
+    "role": "Head, Operations",
+    "departments": ["operations"],
+    "major": "MSBA",
+    "linkedin": "https://www.linkedin.com/in/xinyu-quan",
+    "website": null,
+    "isHead": true,
+    "image": "/content/2026-09-elena.jpg"
+  }
+]

@@ -67,7 +67,21 @@ test('a new member opts in at sign-up, registers for an event and manages news i
 
 test('key pages fit a 390px phone without sideways scrolling', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/', '/signup', '/login', '/events', '/news', '/email/unsubscribe']) {
+  for (const path of [
+    '/',
+    '/team',
+    '/articles',
+    '/articles/genai-llm-process',
+    '/newsletters',
+    '/newsletters/vol-3',
+    '/skills',
+    '/join',
+    '/signup',
+    '/login',
+    '/events',
+    '/news',
+    '/email/unsubscribe',
+  ]) {
     await page.goto(path);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
